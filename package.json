@@ -1,16 +1,16 @@
 {
-  "name": "patterns-config-manager",
+  "name": "libero-pattern-library-config-manager",
   "version": "1.0.0",
-  "description": "Configuration manager for the Libero pattern library",
+  "description": "Configuration manager for Libero patterns",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "d.moulton@elifesciences.org",
+  "license": "MIT",
   "dependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
