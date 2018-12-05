@@ -1,0 +1,28 @@
+{
+  "name": "patterns-config-manager",
+  "version": "1.0.0",
+  "description": "Configuration manager for the Libero pattern library",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "color": "^3.1.0",
+    "deep-iterator": "^1.1.0",
+    "deepmerge": "^2.2.1",
+    "flat": "^4.1.0",
+    "jexl": "^1.1.4",
+    "mocha": "^5.2.0",
+    "sinon": "^7.1.1"
+  },
+  "engines": {
+    "node": ">=10.12.0"
+  }
+}
