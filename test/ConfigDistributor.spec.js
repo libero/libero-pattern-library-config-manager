@@ -18,19 +18,20 @@ const standAloneConfigFixture = require(standAloneConfigFixtureFilePath);
 
 describe('A DistributeConfig class', () => {
 
+  let directoryWriterMock;
+  let reportMock;
+
+  beforeEach(() => {
+    directoryWriterMock = () => Promise.resolve();
+    reportMock = () => {};
+  });
+
   context('instantiated object', () => {
-
-    let configDistributor;
-
-    beforeEach(() => {
-      configDistributor = new ConfigDistributor();
-    });
 
     describe('distribute method', () => {
 
-      let configPaths;
-
       it('initiates config generation with the config paths supplied', () => {
+        const fileWriterMock = () => Promise.resolve();
         const configGeneratorMock = {
           generateConfig: () => {
             return Promise.resolve(standAloneConfigFixture);
@@ -39,7 +40,8 @@ describe('A DistributeConfig class', () => {
         spy(configGeneratorMock, 'generateConfig');
 
         const configPaths = fixtures.configPaths;
-        return configDistributor.distribute(configPaths, configGeneratorMock).then(() => {
+        const configDistributor = new ConfigDistributor();
+        return configDistributor.distribute(configPaths, configGeneratorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
           expect(configGeneratorMock.generateConfig.calledOnceWithExactly(configPaths)).to.be.true;
         });
       });
@@ -86,7 +88,7 @@ describe('A DistributeConfig class', () => {
 
   });
 
-  describe('writeDirectory method', () => {
+  describe('writeDirectory static method', () => {
 
     context('when there is an error creating the directory', () => {
 
@@ -130,6 +132,72 @@ describe('A DistributeConfig class', () => {
           return expect(fs.existsSync(validDirName)).to.be.true;
         });
       });
+
+    });
+
+  });
+
+  describe('writeFile static method', () => {
+
+    let filepath;
+    let data;
+
+    beforeEach(() => {
+      data = standAloneConfigFixture;
+      filepath = '/tempDir/fileFile.tmp';
+    });
+
+    context('when there is an error writing the file', () => {
+
+      let fileWriterRejectionMock;
+
+      beforeEach(() => {
+        fileWriterRejectionMock = () => {
+          return Promise.reject();
+        }
+      });
+
+      it('returns a promise that will be rejected', () => {
+        return expect(
+          ConfigDistributor.writeFile(data, filepath, fileWriterRejectionMock)
+        ).to.be.rejected;
+      });
+
+    });
+
+    context('when there is no error', () => {
+
+      let mockContainer;
+
+      beforeEach(() => {
+        mockContainer = {
+          fileWriterMock: () => {
+            return Promise.resolve();
+          }
+        };
+        spy(mockContainer, 'fileWriterMock');
+      });
+
+      afterEach(() => {
+        mockContainer.fileWriterMock.restore();
+      });
+
+      it('calls the file writer with the correct data to write', () => {
+        return ConfigDistributor.writeFile(data, filepath, mockContainer.fileWriterMock, directoryWriterMock, reportMock).then(() => {
+          const callData = mockContainer.fileWriterMock.getCall(0);
+          expect(callData.args[1]).to.equal(data);
+        });
+
+      });
+
+      it('calls the file writer with the correct path to write to', () => {
+        return ConfigDistributor.writeFile(data, filepath, mockContainer.fileWriterMock, directoryWriterMock, reportMock).then(() => {
+          const callData = mockContainer.fileWriterMock.getCall(0);
+          const expectedPath = path.join(path.resolve(path.join(__dirname, '../')), filepath);
+          expect(callData.args[0]).to.equal(expectedPath);
+        });
+      });
+
 
     });
 

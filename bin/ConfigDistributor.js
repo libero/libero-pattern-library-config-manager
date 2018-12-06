@@ -22,16 +22,21 @@ module.exports = class ConfigDistributor {
     };
   }
 
-  distribute(configPaths, configGenerator) {
+  distribute(
+    configPaths,
+    configGenerator,
+    fileWriter = writeFileAsync,
+    directoryWriter = ConfigDistributor.writeDirectory,
+    report = ConfigDistributor.report) {
 
-    console.log('Distributing config...');
+    report('Distributing config...');
 
     return configGenerator.generateConfig(configPaths)
       .then((config) => {
         return Promise.all(
           [
-            this.distributeToSass(config.layerAllocations.sass, config.data),
-            this.distributeToJs(config.layerAllocations.js, config.data),
+            this.distributeToSass(config.layerAllocations.sass, config.data, fileWriter, directoryWriter, report),
+            this.distributeToJs(config.layerAllocations.js, config.data, fileWriter, directoryWriter, report),
           ]
         )
       })
@@ -41,14 +46,17 @@ module.exports = class ConfigDistributor {
       });
   }
 
-  distributeToJs(allocations, data) {
+  distributeToJs(allocations, data, fileWriter, directoryWriter, report) {
     return ConfigDistributor.writeFile(
       ConfigDistributor.processForJs(allocations, data),
-      this.paths.out.jsonFileName
+      this.paths.out.jsonFileName,
+      fileWriter,
+      directoryWriter,
+      report
     );
   }
 
-  distributeToSass(allocations, data) {
+  distributeToSass(allocations, data, fileWriter, directoryWriter, report) {
 
     const fileWritePromises = [];
 
@@ -60,7 +68,12 @@ module.exports = class ConfigDistributor {
       const outFileName = path.join(this.paths.out.sassVariablesPath, `_${allocation}.scss`);
       fileWritePromises.push(
         new Promise((resolve) => {
-          resolve(ConfigDistributor.writeFile(processedItemData, outFileName));
+          resolve(ConfigDistributor.writeFile(
+            processedItemData,
+            outFileName,
+            fileWriter,
+            directoryWriter,
+            report));
         })
       );
     });
@@ -103,20 +116,44 @@ module.exports = class ConfigDistributor {
     });
   }
 
-  static async writeFile(data, outPath) {
-    let projectRootPath = process.cwd();
-    const matched = projectRootPath.match(/^.*\/libero-config\/bin.*$/);
-    if (matched) {
-      projectRootPath = path.resolve(path.join(process.cwd(), '../..'));
+  static getProjectRootPath() {
+    const currentPath = process.cwd();
+    // TODO: improve, this is naive
+    if (currentPath.match(/^.*\/libero-config\/bin.*$/)) {
+      return path.resolve(path.join(currentPath, '../..'));
     }
-    const outPathDirectoryComponent = outPath.substring(0, outPath.lastIndexOf('/') + 1);
-    const fullDirectoryPath = path.join(projectRootPath, outPathDirectoryComponent);
-    await this.writeDirectory(fullDirectoryPath);
+      return currentPath;
+  }
 
-    const filenameComponent = outPath.substring(outPath.lastIndexOf('/') + 1);
-    return writeFileAsync(path.join(fullDirectoryPath, filenameComponent), data)
+  static getDirectoryComponent(path) {
+    return path.substring(0, path.lastIndexOf('/') + 1);
+  }
+
+  static getFilenameComponent(path) {
+    return path.substring(path.lastIndexOf('/') + 1);
+  }
+
+  static report(message) {
+    console.log(message);
+  }
+
+  static async writeFile(
+    data,
+    outPathFromProjectRoot,
+    fileWriter,
+    directoryWriter,
+    reporter = ConfigDistributor.report
+  ) {
+    const projectRoot = ConfigDistributor.getProjectRootPath();
+    const outDirectoryFromProjectRoot = ConfigDistributor.getDirectoryComponent(outPathFromProjectRoot);
+    const fullDirectoryPath = path.join(projectRoot, outDirectoryFromProjectRoot);
+    const filenameComponent = ConfigDistributor.getFilenameComponent(outPathFromProjectRoot);
+
+    await directoryWriter(fullDirectoryPath);
+
+    return fileWriter(path.join(fullDirectoryPath, filenameComponent), data)
       .then(() => {
-        console.log(`Written config to ${path.join(outPathDirectoryComponent, filenameComponent)}`);
+        reporter(`Written config to ${path.join(outDirectoryFromProjectRoot, filenameComponent)}`);
       })
       .catch(err => { throw err });
   }
