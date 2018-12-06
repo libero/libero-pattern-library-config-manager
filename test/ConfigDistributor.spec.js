@@ -1,5 +1,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const fs = require('fs');
+const path = require('path');
 const sinon = require('sinon');
 
 const Color = require('color');
@@ -78,6 +80,55 @@ describe('A DistributeConfig class', () => {
       it('correctly converts the JavaScript into the appropriate JSON', () => {
         const processed = ConfigDistributor.processForJs(['breakpoints'], jsConfigFixture);
         expect(processed).to.deep.equal(JSON.stringify(fixtures.jsConfigToProcess.input));
+      });
+
+    });
+
+  });
+
+  describe('writeDirectory method', () => {
+
+    context('when there is an error creating the directory', () => {
+
+      it('returns a promise that will be rejected', () => {
+        const invalidDirName = (function () {
+          const parts = new Array(256);
+          parts.fill('a');
+          return parts.join('');
+        }());
+        return expect(
+          ConfigDistributor.writeDirectory(invalidDirName)
+        ).to.be.rejected;
+      });
+
+    });
+
+    context('when there no error', () => {
+
+      let validDirName;
+
+      beforeEach(() => {
+        validDirName = path.join(__dirname, '/tmp/');
+        if (fs.existsSync(validDirName)) {
+          fs.rmdirSync(validDirName);
+        }
+        expect(fs.existsSync(validDirName)).to.be.false;
+      });
+
+      afterEach(() => {
+        fs.rmdirSync(validDirName);
+      });
+
+      it('returns a promise that will not be rejected', () => {
+        return expect(
+          ConfigDistributor.writeDirectory(validDirName)
+        ).to.not.be.rejected;
+      });
+
+      it('writes the directory', () => {
+        return ConfigDistributor.writeDirectory(validDirName).then(() => {
+          return expect(fs.existsSync(validDirName)).to.be.true;
+        });
       });
 
     });
