@@ -31,7 +31,7 @@ module.exports = class ConfigDistributor {
 
     report('Distributing config...');
 
-    return configGenerator.generateConfig(configPaths)
+    return configGenerator.consolidate(configPaths)
       .then((config) => {
         return Promise.all(
           [

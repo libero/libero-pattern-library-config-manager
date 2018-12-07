@@ -31,16 +31,16 @@ describe('A DistributeConfig class', () => {
       it('initiates config generation with the config paths supplied', () => {
         const fileWriterMock = () => Promise.resolve();
         const configConsolidatorMock = {
-          generateConfig: () => {
+          consolidate: () => {
             return Promise.resolve(standAloneConfigFixture);
           }
         };
-        spy(configConsolidatorMock, 'generateConfig');
+        spy(configConsolidatorMock, 'consolidate');
 
         const configPaths = fixtures.configPaths;
         const configDistributor = new ConfigDistributor();
         return configDistributor.distribute(configPaths, configConsolidatorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          expect(configConsolidatorMock.generateConfig.calledOnceWithExactly(configPaths)).to.be.true;
+          expect(configConsolidatorMock.consolidate.calledOnceWithExactly(configPaths)).to.be.true;
         });
       });
 

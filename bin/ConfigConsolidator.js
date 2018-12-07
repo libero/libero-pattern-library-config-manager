@@ -54,7 +54,7 @@ module.exports = class ConfigConsolidator {
     return deepMerge.all(this.getDataFromConfigs(configs), { isMergeableObject });
   }
 
-  async generateConfig(configPaths) {
+  async consolidate(configPaths) {
     const configs = this.loadConfigs(configPaths, './');
     const mergedConfig = this.mergeConfigs(configs);
     const data = await ConfigConsolidator.processDeferredConfig(mergedConfig);
