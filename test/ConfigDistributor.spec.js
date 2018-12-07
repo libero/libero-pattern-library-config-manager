@@ -24,24 +24,31 @@ describe('A DistributeConfig class', () => {
     reportMock = () => {};
   });
 
-  context('instantiated object', () => {
+  describe('an instantiated object', () => {
 
     describe('distribute method', () => {
 
-      it('initiates config generation with the config paths supplied', () => {
-        const fileWriterMock = () => Promise.resolve();
-        const configConsolidatorMock = {
-          consolidate: () => {
-            return Promise.resolve(standAloneConfigFixture);
-          }
-        };
-        spy(configConsolidatorMock, 'consolidate');
+      let consolidatorMock;
+      let fileWriterMock;
 
-        const configPaths = fixtures.configPaths;
-        const configDistributor = new ConfigDistributor();
-        return configDistributor.distribute(configPaths, configConsolidatorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          expect(configConsolidatorMock.consolidate.calledOnceWithExactly(configPaths)).to.be.true;
+      beforeEach(() => {
+          fileWriterMock = () => Promise.resolve();
+          consolidatorMock = {
+            consolidate: () => {
+              return Promise.resolve(standAloneConfigFixture);
+            }
+          };
+          spy(consolidatorMock, 'consolidate');
         });
+
+      it('initiates config consolidation with the config paths supplied', () => {
+        const paths = fixtures.configPaths;
+        const distributor = new ConfigDistributor();
+        return distributor.distribute(paths, consolidatorMock, fileWriterMock, directoryWriterMock, reportMock)
+                 .then(
+                   () => {
+                     expect(consolidatorMock.consolidate.calledOnceWithExactly(fixtures.configPaths)).to.be.true;
+                 });
       });
 
     });
@@ -86,55 +93,6 @@ describe('A DistributeConfig class', () => {
 
   });
 
-  describe('writeDirectory static method', () => {
-
-    context('when there is an error creating the directory', () => {
-
-      it('returns a promise that will be rejected', () => {
-        const invalidDirName = (function () {
-          const parts = new Array(256);
-          parts.fill('a');
-          return parts.join('');
-        }());
-        return expect(
-          ConfigDistributor.writeDirectory(invalidDirName)
-        ).to.be.rejected;
-      });
-
-    });
-
-    context('when there no error', () => {
-
-      let validDirName;
-
-      beforeEach(() => {
-        validDirName = path.join(__dirname, '/tmp/');
-        if (fs.existsSync(validDirName)) {
-          fs.rmdirSync(validDirName);
-        }
-        expect(fs.existsSync(validDirName)).to.be.false;
-      });
-
-      afterEach(() => {
-        fs.rmdirSync(validDirName);
-      });
-
-      it('returns a promise that will not be rejected', () => {
-        return expect(
-          ConfigDistributor.writeDirectory(validDirName)
-        ).to.not.be.rejected;
-      });
-
-      it('writes the directory', () => {
-        return ConfigDistributor.writeDirectory(validDirName).then(() => {
-          return expect(fs.existsSync(validDirName)).to.be.true;
-        });
-      });
-
-    });
-
-  });
-
   describe('writeFile static method', () => {
 
     let filepath;
@@ -163,7 +121,7 @@ describe('A DistributeConfig class', () => {
 
     });
 
-    context('when there is no error', () => {
+    context('when there is no error writing the file', () => {
 
       let fileWriterMock;
 
@@ -197,4 +155,126 @@ describe('A DistributeConfig class', () => {
 
   });
 
+  context('when actually interacting with the file system', () => {
+
+    let data;
+    let invalidName;
+    let validName;
+
+    beforeEach(() => {
+      data = 'some data';
+      invalidName = (function () {
+        const parts = new Array(256);
+        parts.fill('a');
+        return parts.join('');
+      }());
+
+      validName = path.join(__dirname, '/tmp');
+    });
+
+    describe('using the writeDirectory static method', () => {
+
+      context('when there is an error creating the directory', () => {
+
+        it('returns a promise that will be rejected', () => {
+          return expect(ConfigDistributor.writeDirectory(invalidName)).to.be.rejected;
+        });
+
+        it('the directory is not created', () => {
+          return ConfigDistributor.writeDirectory(invalidName).catch(() => {
+            return expect(fs.existsSync(invalidName)).to.be.false;
+          });
+        });
+
+      });
+
+      context('when there is no error creating the directory', () => {
+
+        let validDirName;
+
+        beforeEach(() => {
+          validDirName = path.join(validName, '/');
+          if (fs.existsSync(validDirName)) {
+            fs.rmdirSync(validDirName);
+          }
+          expect(fs.existsSync(validDirName)).to.be.false;
+        });
+
+        afterEach(() => {
+          fs.rmdirSync(validDirName);
+        });
+
+        it('returns a promise that will not be rejected', () => {
+          return expect(
+            ConfigDistributor.writeDirectory(validDirName)
+          ).to.not.be.rejected;
+        });
+
+        it('writes the directory', () => {
+          return ConfigDistributor.writeDirectory(validDirName).then(() => {
+            return expect(fs.existsSync(validDirName)).to.be.true;
+          });
+        });
+
+      });
+
+    });
+
+    describe('using writeFileAsync method', () => {
+
+      let distributor;
+
+      beforeEach(() => {
+        distributor = new ConfigDistributor();
+      });
+
+      context('when there is an error creating the file', () => {
+
+        it('returns a promise that will be rejected', () => {
+          return expect(distributor.writeFileAsync(invalidName, data)).to.be.rejected;
+        });
+
+        it('the file is not created', () => {
+          return distributor.writeFileAsync(invalidName, data).catch(() => {
+            return expect(fs.existsSync(invalidName)).to.be.false;
+          });
+        });
+      });
+
+      context('when there is no error creating the file', () => {
+
+        let distributor;
+
+        beforeEach(() => {
+          if (fs.existsSync(validName)) {
+            fs.unlinkSync(validName);
+          }
+          expect(fs.existsSync(validName)).to.be.false;
+          distributor = new ConfigDistributor();
+        });
+
+        afterEach(() => {
+          fs.unlinkSync(validName);
+        });
+
+        it('writes the file with the expected filename', () => {
+          return distributor.writeFileAsync(validName, data).then(() => {
+            return expect(fs.existsSync(validName)).to.be.true;
+          });
+        });
+
+        it('writes the expected data to the file', () => {
+          return distributor.writeFileAsync(validName, data).then(() => {
+            return expect(fs.readFileSync(validName, 'utf8')).to.equal(data);
+          });
+        });
+
+      });
+
+
+    });
+
+  });
+
 });
+

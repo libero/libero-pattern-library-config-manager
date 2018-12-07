@@ -5,8 +5,6 @@ const fs = require('fs');
 const path = require('path');
 const {promisify} = require('util');
 
-const writeFileAsync = promisify(fs.writeFile);
-
 /**
  * Distributes specified config to appropriate layers (sass, js, templates)
  * @type {module.ConfigDistributor}
@@ -20,12 +18,14 @@ module.exports = class ConfigDistributor {
         jsonFileName: '/generated/js/derivedConfig.json'
       }
     };
+
+    this.writeFileAsync = promisify(fs.writeFile);
   }
 
   distribute(
     configPaths,
     configGenerator,
-    fileWriter = writeFileAsync,
+    fileWriter = this.writeFileAsync,
     directoryWriter = ConfigDistributor.writeDirectory,
     report = ConfigDistributor.report) {
 

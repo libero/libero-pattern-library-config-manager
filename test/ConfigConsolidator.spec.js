@@ -11,7 +11,7 @@ const ConfigConsolidator = require('../bin/ConfigConsolidator');
 
 describe('A ConfigConsolidator class', () => {
 
-  context('instansiated object', () => {
+  describe('an instansiated object', () => {
 
     let configConsolidator;
 
@@ -41,9 +41,9 @@ describe('A ConfigConsolidator class', () => {
 
         context('when a value in the supplied array does not resolve to a file system path', () => {
 
-          it('throws with the message saying the module cannot be found', () => {
+          it('throws with a "Cannot find module" message', () => {
             expect(() => {
-              configConsolidator.loadConfigs(['./path/to/non-existant/file']);
+              configConsolidator.loadConfigs(['./path/to/non-existent/file']);
             }).to.throw(/Cannot find module/);
           })
 
@@ -154,8 +154,8 @@ describe('A ConfigConsolidator class', () => {
 
       it('passes that value through unchanged', () => {
         return expect(
-          ConfigConsolidator.processDeferredConfig(configWithDeferrals)
-        ).to.eventually.have.own.property('rootValue', 10);
+          ConfigConsolidator.processDeferredConfig(configWithNoDeferrals)
+        ).to.eventually.have.own.property('stringProperty', 'string property');
       });
 
     });
