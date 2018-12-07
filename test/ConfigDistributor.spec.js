@@ -5,16 +5,14 @@ const path = require('path');
 const sinon = require('sinon');
 
 const Color = require('color');
-const fixtures = require('./fixtures/configFixtures');
 const ConfigDistributor = require('../bin/ConfigDistributor');
+const fixtures = require('./fixtures/configFixtures');
+const standAloneConfigFixture = require('./fixtures/configFixtureStandAlone');
 
 const spy = sinon.spy;
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
-
-const standAloneConfigFixtureFilePath = './fixtures/configFixtureStandAlone';
-const standAloneConfigFixture = require(standAloneConfigFixtureFilePath);
 
 describe('A DistributeConfig class', () => {
 
@@ -32,17 +30,17 @@ describe('A DistributeConfig class', () => {
 
       it('initiates config generation with the config paths supplied', () => {
         const fileWriterMock = () => Promise.resolve();
-        const configGeneratorMock = {
+        const configConsolidatorMock = {
           generateConfig: () => {
             return Promise.resolve(standAloneConfigFixture);
           }
         };
-        spy(configGeneratorMock, 'generateConfig');
+        spy(configConsolidatorMock, 'generateConfig');
 
         const configPaths = fixtures.configPaths;
         const configDistributor = new ConfigDistributor();
-        return configDistributor.distribute(configPaths, configGeneratorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          expect(configGeneratorMock.generateConfig.calledOnceWithExactly(configPaths)).to.be.true;
+        return configDistributor.distribute(configPaths, configConsolidatorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
+          expect(configConsolidatorMock.generateConfig.calledOnceWithExactly(configPaths)).to.be.true;
         });
       });
 
@@ -167,37 +165,33 @@ describe('A DistributeConfig class', () => {
 
     context('when there is no error', () => {
 
-      let mockContainer;
+      let fileWriterMock;
 
       beforeEach(() => {
-        mockContainer = {
-          fileWriterMock: () => {
+        const container = {
+          mock: () => {
             return Promise.resolve();
           }
         };
-        spy(mockContainer, 'fileWriterMock');
-      });
-
-      afterEach(() => {
-        mockContainer.fileWriterMock.restore();
+        spy(container, 'mock');
+        fileWriterMock = container.mock;
       });
 
       it('calls the file writer with the correct data to write', () => {
-        return ConfigDistributor.writeFile(data, filepath, mockContainer.fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          const callData = mockContainer.fileWriterMock.getCall(0);
+        return ConfigDistributor.writeFile(data, filepath, fileWriterMock, directoryWriterMock, reportMock).then(() => {
+          const callData = fileWriterMock.getCall(0);
           expect(callData.args[1]).to.equal(data);
         });
 
       });
 
       it('calls the file writer with the correct path to write to', () => {
-        return ConfigDistributor.writeFile(data, filepath, mockContainer.fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          const callData = mockContainer.fileWriterMock.getCall(0);
+        return ConfigDistributor.writeFile(data, filepath, fileWriterMock, directoryWriterMock, reportMock).then(() => {
+          const callData = fileWriterMock.getCall(0);
           const expectedPath = path.join(path.resolve(path.join(__dirname, '../')), filepath);
           expect(callData.args[0]).to.equal(expectedPath);
         });
       });
-
 
     });
 
