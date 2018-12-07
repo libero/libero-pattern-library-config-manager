@@ -9,11 +9,6 @@ const Color = require('color');
 const fixtures = require('./fixtures/configFixtures');
 const ConfigConsolidator = require('../bin/ConfigConsolidator');
 
-const configPaths = [
-  './config--libero',
-  './config--custom'
-];
-
 describe('A ConfigConsolidator class', () => {
 
   context('instansiated object', () => {
