@@ -5,9 +5,9 @@ const jexl = require('jexl');
 
 /**
  * Generates one fully merged config file from multiple sources
- * @type {module.ConfigGenerator}
+ * @type {module.ConfigConsolidator}
  */
-module.exports = class ConfigGenerator {
+module.exports = class ConfigConsolidator {
 
   constructor() {}
 
@@ -57,7 +57,7 @@ module.exports = class ConfigGenerator {
   async generateConfig(configPaths) {
     const configs = this.loadConfigs(configPaths, './');
     const mergedConfig = this.mergeConfigs(configs);
-    const data = await ConfigGenerator.processDeferredConfig(mergedConfig);
+    const data = await ConfigConsolidator.processDeferredConfig(mergedConfig);
 
     return {
       data: data,
@@ -74,7 +74,7 @@ module.exports = class ConfigGenerator {
     const deepData = deepIterator(config);
     for (let {parent, key, value} of deepData) {
       if (typeof value === 'string' && value.indexOf('!expression ') > -1) {
-        parent[key] = await ConfigGenerator.processExpression(value, config);
+        parent[key] = await ConfigConsolidator.processExpression(value, config);
       }
     }
 

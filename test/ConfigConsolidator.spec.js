@@ -7,21 +7,21 @@ chai.use(chaiAsPromised);
 const Color = require('color');
 
 const fixtures = require('./fixtures/configFixtures');
-const ConfigGenerator = require('../bin/ConfigGenerator');
+const ConfigConsolidator = require('../bin/ConfigConsolidator');
 
 const configPaths = [
   './config--libero',
   './config--custom'
 ];
 
-describe('A ConfigGenerator class', () => {
+describe('A ConfigConsolidator class', () => {
 
   context('instansiated object', () => {
 
-    let configGenerator;
+    let configConsolidator;
 
     beforeEach(() => {
-      configGenerator = new ConfigGenerator();
+      configConsolidator = new ConfigConsolidator();
     });
 
     describe('loadConfigs method', () => {
@@ -30,7 +30,7 @@ describe('A ConfigGenerator class', () => {
 
         it('throws with the message "loadConfigs must he supplied with an array"', () => {
           expect(() => {
-            configGenerator.loadConfigs(null);
+            configConsolidator.loadConfigs(null);
           }).to.throw('loadConfigs must he supplied with an array');
         })
 
@@ -40,7 +40,7 @@ describe('A ConfigGenerator class', () => {
 
         it('does not throw with the message "loadConfigs must he supplied with an array"', () => {
           expect(() => {
-            configGenerator.loadConfigs([]);
+            configConsolidator.loadConfigs([]);
           }).not.to.throw('loadConfigs must he supplied with an array');
         })
 
@@ -48,7 +48,7 @@ describe('A ConfigGenerator class', () => {
 
           it('throws with the message saying the module cannot be found', () => {
             expect(() => {
-              configGenerator.loadConfigs(['./path/to/non-existant/file']);
+              configConsolidator.loadConfigs(['./path/to/non-existant/file']);
             }).to.throw(/Cannot find module/);
           })
 
@@ -58,7 +58,7 @@ describe('A ConfigGenerator class', () => {
 
           it('does not throw', () => {
             expect(() => {
-              configGenerator.loadConfigs(['configFixtures.js'], `${__dirname}/fixtures/`)
+              configConsolidator.loadConfigs(['configFixtures.js'], `${__dirname}/fixtures/`)
             }).not.to.throw();
           });
 
@@ -77,7 +77,7 @@ describe('A ConfigGenerator class', () => {
       beforeEach(() => {
         firstConfig = fixtures.configsToMerge.firstConfig;
         secondConfig = fixtures.configsToMerge.secondConfig;
-        merged = configGenerator.mergeConfigs([firstConfig, secondConfig]);
+        merged = configConsolidator.mergeConfigs([firstConfig, secondConfig]);
 
       });
 
@@ -114,7 +114,7 @@ describe('A ConfigGenerator class', () => {
 
       beforeEach(() => {
         allConfigsAllocations = fixtures.configLayerAllocations;
-        mergedAllocations = configGenerator.allocateToLayers(allConfigsAllocations);
+        mergedAllocations = configConsolidator.allocateToLayers(allConfigsAllocations);
       });
 
       it('correctly merges allocations from all configs', () => {
@@ -149,7 +149,7 @@ describe('A ConfigGenerator class', () => {
 
       it('evaluates that expression within the context of config', () => {
         return expect(
-          ConfigGenerator.processDeferredConfig(configWithDeferrals)
+          ConfigConsolidator.processDeferredConfig(configWithDeferrals)
         ).to.eventually.have.own.property('derivedValue', 300);
       });
 
@@ -159,7 +159,7 @@ describe('A ConfigGenerator class', () => {
 
       it('passes that value through unchanged', () => {
         return expect(
-          ConfigGenerator.processDeferredConfig(configWithDeferrals)
+          ConfigConsolidator.processDeferredConfig(configWithDeferrals)
         ).to.eventually.have.own.property('rootValue', 10);
       });
 

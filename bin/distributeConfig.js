@@ -1,4 +1,4 @@
-const ConfigGenerator = require('./ConfigGenerator');
+const ConfigGenerator = require('./ConfigConsolidator');
 const ConfigDistributor = require('./ConfigDistributor');
 const fs = require('fs');
 const path = require('path');
