@@ -11,7 +11,7 @@ const ConfigConsolidator = require('../bin/ConfigConsolidator');
 
 describe('A ConfigConsolidator class', () => {
 
-  describe('an instansiated object', () => {
+  describe('an instantiated object', () => {
 
     let configConsolidator;
 
