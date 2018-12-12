@@ -2,8 +2,8 @@ const Color = require('color');
 const deepIterator = require('deep-iterator').default;
 const flatten = require('flat');
 const fs = require('fs');
+const NodeFSFDriver = require('../bin/NodeFSDriver');
 const path = require('path');
-const {promisify} = require('util');
 
 /**
  * Distributes specified config to appropriate layers (sass, js, templates)
@@ -18,15 +18,13 @@ module.exports = class ConfigDistributor {
         jsonFileName: '/generated/js/derivedConfig.json'
       }
     };
-
-    this.writeFileAsync = promisify(fs.writeFile);
   }
 
   distribute(
     configPaths,
     configGenerator,
-    fileWriter = this.writeFileAsync,
-    directoryWriter = ConfigDistributor.writeDirectory,
+    fileWriter = NodeFSFDriver.writeFileAsync,
+    directoryWriter = NodeFSFDriver.writeDirectory,
     report = ConfigDistributor.report) {
 
     report('Distributing config...');
@@ -103,17 +101,6 @@ module.exports = class ConfigDistributor {
         const [key, value] = pair;
         return `${carry}$${key}: ${value};\n`;
       }, '');
-  }
-
-  static writeDirectory(path) {
-    return new Promise((resolve, reject) => {
-      fs.mkdir(path, { recursive: true}, (err) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-    });
   }
 
   static getProjectRootPath() {
