@@ -1,8 +1,6 @@
 const Color = require('color');
 const deepIterator = require('deep-iterator').default;
 const flatten = require('flat');
-const fs = require('fs');
-const NodeFSFDriver = require('../bin/NodeFSDriver');
 const path = require('path');
 
 /**
@@ -11,10 +9,11 @@ const path = require('path');
  */
 module.exports = class ConfigDistributor {
 
-  constructor() {
+  constructor(fileSystem) {
+    this.fileSystem = fileSystem;
     this.paths = {
       out: {
-        sassVariablesPath: '/generated/css/sass/variables',
+        sassVariablesPath: '/generated/css/sass/variables/',
         jsonFileName: '/generated/js/derivedConfig.json'
       }
     };
@@ -23,18 +22,16 @@ module.exports = class ConfigDistributor {
   distribute(
     configPaths,
     configGenerator,
-    fileWriter = NodeFSFDriver.writeFileAsync,
-    directoryWriter = NodeFSFDriver.writeDirectory,
-    report = ConfigDistributor.report) {
+    reporter = ConfigDistributor.reporter) {
 
-    report('Distributing config...');
+    reporter('Distributing config...');
 
     return configGenerator.consolidate(configPaths)
       .then((config) => {
         return Promise.all(
           [
-            this.distributeToSass(config.layerAllocations.sass, config.data, fileWriter, directoryWriter, report),
-            this.distributeToJs(config.layerAllocations.js, config.data, fileWriter, directoryWriter, report),
+            this.distributeToJs(config.layerAllocations.js, config.data, reporter),
+            this.distributeToSass(config.layerAllocations.sass, config.data, reporter),
           ]
         )
       })
@@ -44,34 +41,26 @@ module.exports = class ConfigDistributor {
       });
   }
 
-  distributeToJs(allocations, data, fileWriter, directoryWriter, report) {
-    return ConfigDistributor.writeFile(
-      ConfigDistributor.processForJs(allocations, data),
-      this.paths.out.jsonFileName,
-      fileWriter,
-      directoryWriter,
-      report
-    );
+  distributeToJs(allocations, data, reporter) {
+    const processedData = ConfigDistributor.processForJs(allocations, data);
+    const relativePath = this.paths.out.jsonFileName;
+    const directory = ConfigDistributor.getDirectoryComponent(relativePath);
+    const filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
+    return this.fileSystem.writeFile(processedData, directory, filename, reporter);
   }
 
-  distributeToSass(allocations, data, fileWriter, directoryWriter, report) {
-
+  distributeToSass(allocations, data, reporter) {
+    const directory = ConfigDistributor.getDirectoryComponent(this.paths.out.sassVariablesPath);
     const fileWritePromises = [];
 
-    // Each allocation is written to a separate file
     allocations.forEach((allocation) => {
       const dataForAllocation = {};
       dataForAllocation[allocation] = data[allocation];
-      const processedItemData = ConfigDistributor.processForSass(dataForAllocation);
-      const outFileName = path.join(this.paths.out.sassVariablesPath, `_${allocation}.scss`);
+      const processedData = ConfigDistributor.processForSass(dataForAllocation);
+      const fileName = `_${allocation}.scss`;
       fileWritePromises.push(
         new Promise((resolve) => {
-          resolve(ConfigDistributor.writeFile(
-            processedItemData,
-            outFileName,
-            fileWriter,
-            directoryWriter,
-            report));
+          resolve(this.fileSystem.writeFile(processedData, directory, fileName, reporter));
         })
       );
     });
@@ -103,46 +92,13 @@ module.exports = class ConfigDistributor {
       }, '');
   }
 
-  static getProjectRootPath() {
-    const currentPath = process.cwd();
-    // TODO: improve, this is naive
-    if (currentPath.match(/^.*\/libero-config\/bin.*$/)) {
-      return path.resolve(path.join(currentPath, '../..'));
-    }
-      return currentPath;
-  }
-
-  static getDirectoryComponent(path) {
-    return path.substring(0, path.lastIndexOf('/') + 1);
-  }
-
-  static getFilenameComponent(path) {
-    return path.substring(path.lastIndexOf('/') + 1);
-  }
-
-  static report(message) {
+  static reporter(message) {
     console.log(message);
   }
 
-  static async writeFile(
-    data,
-    outPathFromProjectRoot,
-    fileWriter,
-    directoryWriter,
-    reporter = ConfigDistributor.report
-  ) {
-    const projectRoot = ConfigDistributor.getProjectRootPath();
-    const outDirectoryFromProjectRoot = ConfigDistributor.getDirectoryComponent(outPathFromProjectRoot);
-    const fullDirectoryPath = path.join(projectRoot, outDirectoryFromProjectRoot);
-    const filenameComponent = ConfigDistributor.getFilenameComponent(outPathFromProjectRoot);
-
-    await directoryWriter(fullDirectoryPath);
-
-    return fileWriter(path.join(fullDirectoryPath, filenameComponent), data)
-      .then(() => {
-        reporter(`Written config to ${path.join(outDirectoryFromProjectRoot, filenameComponent)}`);
-      })
-      .catch(err => { throw err });
+  static getDirectoryComponent(projectRelativeDirectory) {
+    const directoryComponent = `./${projectRelativeDirectory.substring(0, projectRelativeDirectory.lastIndexOf('/') + 1)}`;
+    return path.resolve(process.cwd(), directoryComponent);
   }
 
 };

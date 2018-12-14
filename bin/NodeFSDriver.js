@@ -5,6 +5,10 @@ module.exports = class NodeFSDriver {
 
   constructor() {}
 
+  static readFileAsync(path, encoding = 'utf8') {
+    return promisify(fs.readFile).call(null, path, encoding)
+  }
+
   static writeDirectory(path) {
     return new Promise((resolve, reject) => {
       fs.mkdir(path, { recursive: true}, (err) => {
@@ -17,7 +21,7 @@ module.exports = class NodeFSDriver {
   }
 
   static writeFileAsync(path, data) {
-    return promisify(promisify(fs.writeFile)).call(null, path, data)
+    return promisify(fs.writeFile).call(null, path, data)
   }
 
 };
