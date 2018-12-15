@@ -2,7 +2,6 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const fs = require('fs');
 const path = require('path');
-
 const NodeFSDriver = require('../bin/NodeFSDriver')
 
 chai.use(chaiAsPromised);
@@ -21,6 +20,35 @@ describe('NodeFSDriver class', () => {
     }());
 
     validName = path.join(__dirname, '/tmp');
+  });
+
+  describe('using the readFileAsync static method', () => {
+
+    context('when there is an error creating the file', () => {
+
+      it('returns a promise that will be rejected', () => {
+        return expect(NodeFSDriver.readFileAsync('/i/do/not/exist.txt')).to.be.rejected;
+      });
+
+    });
+
+    context('when there is no error creating the file', () => {
+
+      let expectedContent;
+      let filePath;
+
+      beforeEach(() => {
+        expectedContent = 'i am therefore i think\n';
+        filePath = path.join(process.cwd(), '/test/fixtures/simplePresence.txt');
+      });
+
+      it('correctly reads a utf8 encoded file', () => {
+        return expect(NodeFSDriver.readFileAsync(filePath, 'utf8')).to.eventually.equal(expectedContent);
+
+      });
+
+    });
+
   });
 
   describe('using the writeDirectory static method', () => {
