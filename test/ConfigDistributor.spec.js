@@ -13,7 +13,7 @@ const spy = sinon.spy;
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe('A DistributeConfig class', () => {
+describe('DistributeConfig class', () => {
 
   let directoryWriterMock;
   let reportMock;
@@ -50,10 +50,9 @@ describe('A DistributeConfig class', () => {
         const paths = fixtures.configPaths;
         const distributor = new ConfigDistributor(fileSystemMock);
         return distributor.distribute(paths, consolidatorMock, reportMock)
-                 .then(
-                   () => {
-                     expect(consolidatorMock.consolidate.calledOnceWithExactly(fixtures.configPaths)).to.be.true;
-                 });
+          .then(() => {
+            expect(consolidatorMock.consolidate.calledOnceWithExactly(fixtures.configPaths)).to.be.true;
+          });
       });
 
     });

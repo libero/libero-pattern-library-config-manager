@@ -2,7 +2,6 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const fs = require('fs');
 const path = require('path');
-const {promisify} = require('util');
 const NodeFSDriver = require('../bin/NodeFSDriver')
 
 chai.use(chaiAsPromised);
