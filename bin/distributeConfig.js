@@ -6,19 +6,18 @@ const path = require('path');
 
 const fileSystem = new FileSystem(NodeFSDriver);
 
-// const configSpecFilepath = path.join(/*path.resolve(__dirname, '../')*/__dirname, 'configRegister.json');
-const configSpecFilepath = path.join(__dirname, 'configRegister.json');
+const configSpecFilepath = path.join(__dirname, 'configSpec.json');
 
 function useConfigSpec(rawData) {
   const data = JSON.parse((rawData));
-  const configPaths = data.configPaths;
+  const paths = data.paths;
 
   // Combine all configs specified in configPaths into one config
-  const configGenerator = new ConfigGenerator(configPaths);
+  const configGenerator = new ConfigGenerator(paths.config);
 
   // Distribute defined parts of the config to specified technology layers
-  const configDistributor = new ConfigDistributor(fileSystem);
-  return configDistributor.distribute(configPaths, configGenerator)
+  const configDistributor = new ConfigDistributor(fileSystem, paths);
+  return configDistributor.distribute(configGenerator)
     .catch((err) => { throw err; });
 }
 

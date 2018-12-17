@@ -14,9 +14,17 @@ config.data.color = { primary: {}, text: {} };
 config.data.color.text.normal = Color('#212121');
 
 config.layerAllocations = {
-  sass: ['baselinegrid', 'breakpoints', 'color'],
-  js: ['color', 'breakpoints'],
+  sass: ['breakpoints'],
+  js: ['breakpoints'],
   template: ['breakpoints']
 };
 
-module.exports = config;
+const expectedOutput = {
+  js: "{\"breakpoints\":{\"site\":{\"x_small\":320,\"small\":480}}}",
+  sass: "$breakpoints-site-x_small: 320;\n$breakpoints-site-small: 480;\n"
+};
+
+module.exports = {
+  input: config,
+  expectedOutput
+};

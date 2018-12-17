@@ -8,24 +8,18 @@ const flatten = require('flat');
  */
 module.exports = class ConfigDistributor {
 
-  constructor(fileSystem) {
-    this.paths = {
-      out: {
-        sassVariablesPath: '/generated/css/sass/variables/',
-        jsonFileName: '/generated/js/derivedConfig.json'
-      }
-    };
+  constructor(fileSystem, paths) {
     this.fileSystem = fileSystem;
+    this.paths = paths;
   }
 
   distribute(
-    configPaths,
     configGenerator,
     reporter = ConfigDistributor.reporter) {
 
-    reporter('Distributing config...');
+    reporter.call(null, 'Distributing config...');
 
-    return configGenerator.consolidate(configPaths)
+    return configGenerator.consolidate(this.paths.config)
       .then((config) => {
         return Promise.all(
           [
@@ -42,15 +36,14 @@ module.exports = class ConfigDistributor {
 
   distributeToJs(allocations, data, reporter) {
     const processedData = ConfigDistributor.processForJs(allocations, data);
-    const relativePath = this.paths.out.jsonFileName;
+    const relativePath = this.paths.output.jsonFileName;
     const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
     const filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
     return this.fileSystem.writeFile(processedData, directory, filename, reporter);
   }
 
   distributeToSass(allocations, data, reporter) {
-    const relativePath = this.paths.out.sassVariablesPath;
-    const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
+    const directory = this.paths.output.sassVariablesPath;
     const fileWritePromises = [];
 
     allocations.forEach((allocation) => {

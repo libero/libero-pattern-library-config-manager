@@ -1,9 +1,7 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const path = require('path');
 const sinon = require('sinon');
 
-const Color = require('color');
 const ConfigDistributor = require('../bin/ConfigDistributor');
 const fixtures = require('./fixtures/configFixtures');
 const standAloneConfigFixture = require('./fixtures/configFixtureStandAlone');
@@ -28,69 +26,90 @@ describe('DistributeConfig class', () => {
     describe('distribute method', () => {
 
       let consolidatorMock;
+      let consolidateSpy;
+      let distributor;
+      let expected;
       let fileSystemMock;
+      let paths;
+      let readFileSpy;
+      let writeFileSpy;
 
       beforeEach(() => {
           consolidatorMock = {
             consolidate: () => {
-              return Promise.resolve(standAloneConfigFixture);
+              return Promise.resolve(standAloneConfigFixture.input);
             }
           };
-          spy(consolidatorMock, 'consolidate');
+          consolidateSpy = spy(consolidatorMock, 'consolidate');
 
         fileSystemMock = {
           writeFile: () => { return Promise.resolve; },
           readFile: () => { return Promise.resolve; }
         };
-        spy(fileSystemMock, 'writeFile');
-        spy(fileSystemMock, 'readFile');
+        writeFileSpy = spy(fileSystemMock, 'writeFile');
+        readFileSpy = spy(fileSystemMock, 'readFile');
+
+        paths = fixtures.paths;
+        expected = standAloneConfigFixture.expectedOutput;
+
+        distributor = new ConfigDistributor(fileSystemMock, paths);
       });
 
       it('initiates config consolidation with the config paths supplied', () => {
-        const paths = fixtures.configPaths;
-        const distributor = new ConfigDistributor(fileSystemMock);
-        return distributor.distribute(paths, consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock, reportMock)
           .then(() => {
-            expect(consolidatorMock.consolidate.calledOnceWithExactly(fixtures.configPaths)).to.be.true;
+            expect(consolidateSpy.calledOnceWithExactly(fixtures.paths.config)).to.be.true;
           });
       });
 
-    });
-
-  });
-
-  describe('processForSass static method', () => {
-
-    context('when supplied with a JavaScript object defining data for SASS variables', () => {
-
-      let sassConfigFixture;
-
-      beforeEach(() => {
-        sassConfigFixture = fixtures.sassConfigToProcess.input;
+      it('determines the correct data to distribute to the JavaScript layer', () => {
+        return distributor.distribute(consolidatorMock, reportMock)
+          .then(() => {
+            expect(writeFileSpy.withArgs(expected.js).calledOnce).to.be.true;
+          });
       });
 
-      it('correctly converts the JavaScript into a string wrapping corresponding SASS variable declarations', () => {
-        const processed = ConfigDistributor.processForSass(sassConfigFixture);
-        expect(processed).to.deep.equal(fixtures.sassConfigToProcess.expected);
+      it('attempts to distribute the JavaScript layer to the correct path', () => {
+        const jsonPath = paths.output.jsonFileName;
+        const expectedDirectory = jsonPath.substring(0, jsonPath.lastIndexOf('/') + 1);
+        const expectedFilename = jsonPath.substring(jsonPath.lastIndexOf('/') + 1);
+
+        return distributor.distribute(consolidatorMock, reportMock)
+
+          .then(() => { return new Promise((resolve) => {
+            writeFileSpy.getCalls().forEach((spyCall) => {
+              if (spyCall.args[0] === expected.js) {
+                expect(spyCall.args[1]).to.equal(expectedDirectory);
+                expect(spyCall.args[2]).to.equal(expectedFilename);
+                resolve();
+              }
+            });
+          })})
       });
 
-    });
-
-  });
-
-  describe('processForJs static method', () => {
-
-    context('when supplied with a JavaScript object defining data for the JavaScript layer', () => {
-
-      let jsConfigFixture;
-
-      beforeEach(() => {
-        jsConfigFixture = fixtures.jsConfigToProcess.input;
+      it('determines the correct data to distribute to the Sass layer', () => {
+        return distributor.distribute(consolidatorMock, reportMock)
+          .then(() => {
+            expect(writeFileSpy.withArgs(expected.sass).calledOnce).to.be.true;
+          });
       });
 
-      it('correctly converts the JavaScript into the appropriate JSON', () => {
-        const processed = ConfigDistributor.processForJs(['breakpoints'], jsConfigFixture);
-        expect(processed).to.deep.equal(JSON.stringify(fixtures.jsConfigToProcess.input));
+      it('attempts to distribute the Sass layer to the correct path', () => {
+        const expectedDirectory = paths.output.sassVariablesPath;
+        const expectedFilename = '_breakpoints.scss';
+        return distributor.distribute(consolidatorMock, reportMock)
+          .then(() => {
+            const spyCalls = writeFileSpy.getCalls();
+            let sassCall = null;
+            spyCalls.forEach((spyCall) => {
+              if (spyCall.args[0] === expected.sass) {
+                sassCall = spyCall;
+              }
+            });
+            expect(sassCall.args[1]).to.equal(expectedDirectory);
+            expect(sassCall.args[2]).to.equal(expectedFilename);
+          });
+
       });
 
     });
