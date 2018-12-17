@@ -1,15 +1,14 @@
-const path = require('path');
-
 module.exports = class FileSystem {
 
   constructor(driver) {
     this.driver = driver;
   }
 
-  async writeFile(data, directory, filename, reporter = console.log) {
-    await this.driver.writeDirectory(directory);
+  async writeFile(data, projectRelativeDirectory, filename, reporter = console.log) {
+    const directory = await this.driver.writeDirectory(projectRelativeDirectory);
+    //  Not using path.join as want to keep this layer separate from the file system driver
+    const fullPath = directory + filename;
 
-    const fullPath = path.join(directory, filename);
     return this.driver.writeFileAsync(fullPath, data)
       .then(() => {
         reporter(`Written config to ${fullPath}`);

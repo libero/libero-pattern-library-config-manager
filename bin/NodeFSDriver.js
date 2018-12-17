@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const {promisify} = require('util');
 
 module.exports = class NodeFSDriver {
@@ -9,13 +10,14 @@ module.exports = class NodeFSDriver {
     return promisify(fs.readFile).call(null, path, encoding)
   }
 
-  static writeDirectory(path) {
+  static writeDirectory(projectRelativePath) {
     return new Promise((resolve, reject) => {
-      fs.mkdir(path, { recursive: true}, (err) => {
+      const fullPath = path.join(process.cwd(), projectRelativePath);
+      fs.mkdir(fullPath, { recursive: true}, (err) => {
         if (err) {
           reject(err);
         }
-        resolve();
+        resolve(fullPath);
       });
     });
   }

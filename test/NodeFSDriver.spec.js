@@ -2,6 +2,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const fs = require('fs');
 const path = require('path');
+const {promisify} = require('util');
 const NodeFSDriver = require('../bin/NodeFSDriver')
 
 chai.use(chaiAsPromised);
@@ -69,29 +70,32 @@ describe('NodeFSDriver class', () => {
 
     context('when there is no error creating the directory', () => {
 
-      let validDirName;
+      let validRelativeDirName;
 
       beforeEach(() => {
-        validDirName = path.join(validName, '/');
-        if (fs.existsSync(validDirName)) {
-          fs.rmdirSync(validDirName);
+        validRelativeDirName = './tmp/';
+        if (fs.existsSync(validRelativeDirName)) {
+          fs.rmdirSync(validRelativeDirName);
         }
-        expect(fs.existsSync(validDirName)).to.be.false;
+        expect(fs.existsSync(validRelativeDirName)).to.be.false;
       });
 
       afterEach(() => {
-        fs.rmdirSync(validDirName);
-      });
-
-      it('returns a promise that will not be rejected', () => {
-        return expect(
-          NodeFSDriver.writeDirectory(validDirName)
-        ).to.not.be.rejected;
+        if (fs.existsSync(validRelativeDirName)) {
+          fs.rmdirSync(validRelativeDirName);
+        }
       });
 
       it('writes the directory', () => {
-        return NodeFSDriver.writeDirectory(validDirName).then(() => {
-          return expect(fs.existsSync(validDirName)).to.be.true;
+        return NodeFSDriver.writeDirectory(validRelativeDirName).then(() => {
+          return expect(fs.existsSync(validRelativeDirName)).to.be.true;
+        });
+      });
+
+      it('returns a promise that resolves to the path of the written directory', () => {
+        const expectedPathWritten = path.join(process.cwd(), validRelativeDirName);
+        return NodeFSDriver.writeDirectory(validRelativeDirName).then((pathWritten) => {
+          return expect(pathWritten).to.equal(expectedPathWritten);
         });
       });
 

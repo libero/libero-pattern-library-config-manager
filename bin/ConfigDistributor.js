@@ -1,7 +1,6 @@
 const Color = require('color');
 const deepIterator = require('deep-iterator').default;
 const flatten = require('flat');
-const path = require('path');
 
 /**
  * Distributes specified config to appropriate layers (sass, js, templates)
@@ -10,13 +9,13 @@ const path = require('path');
 module.exports = class ConfigDistributor {
 
   constructor(fileSystem) {
-    this.fileSystem = fileSystem;
     this.paths = {
       out: {
         sassVariablesPath: '/generated/css/sass/variables/',
         jsonFileName: '/generated/js/derivedConfig.json'
       }
     };
+    this.fileSystem = fileSystem;
   }
 
   distribute(
@@ -44,13 +43,14 @@ module.exports = class ConfigDistributor {
   distributeToJs(allocations, data, reporter) {
     const processedData = ConfigDistributor.processForJs(allocations, data);
     const relativePath = this.paths.out.jsonFileName;
-    const directory = ConfigDistributor.getDirectoryComponent(relativePath);
+    const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
     const filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
     return this.fileSystem.writeFile(processedData, directory, filename, reporter);
   }
 
   distributeToSass(allocations, data, reporter) {
-    const directory = ConfigDistributor.getDirectoryComponent(this.paths.out.sassVariablesPath);
+    const relativePath = this.paths.out.sassVariablesPath;
+    const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
     const fileWritePromises = [];
 
     allocations.forEach((allocation) => {
@@ -94,11 +94,6 @@ module.exports = class ConfigDistributor {
 
   static reporter(message) {
     console.log(message);
-  }
-
-  static getDirectoryComponent(projectRelativeDirectory) {
-    const directoryComponent = `./${projectRelativeDirectory.substring(0, projectRelativeDirectory.lastIndexOf('/') + 1)}`;
-    return path.resolve(process.cwd(), directoryComponent);
   }
 
 };

@@ -28,22 +28,28 @@ describe('A DistributeConfig class', () => {
     describe('distribute method', () => {
 
       let consolidatorMock;
-      let fileWriterMock;
+      let fileSystemMock;
 
       beforeEach(() => {
-          fileWriterMock = () => Promise.resolve();
           consolidatorMock = {
             consolidate: () => {
               return Promise.resolve(standAloneConfigFixture);
             }
           };
           spy(consolidatorMock, 'consolidate');
-        });
+
+        fileSystemMock = {
+          writeFile: () => { return Promise.resolve; },
+          readFile: () => { return Promise.resolve; }
+        };
+        spy(fileSystemMock, 'writeFile');
+        spy(fileSystemMock, 'readFile');
+      });
 
       it('initiates config consolidation with the config paths supplied', () => {
         const paths = fixtures.configPaths;
-        const distributor = new ConfigDistributor();
-        return distributor.distribute(paths, consolidatorMock, fileWriterMock, directoryWriterMock, reportMock)
+        const distributor = new ConfigDistributor(fileSystemMock);
+        return distributor.distribute(paths, consolidatorMock, reportMock)
                  .then(
                    () => {
                      expect(consolidatorMock.consolidate.calledOnceWithExactly(fixtures.configPaths)).to.be.true;

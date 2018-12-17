@@ -1,6 +1,5 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const path = require('path');
 const sinon = require('sinon');
 
 const FileSystem = require('../bin/FileSystem');
@@ -14,12 +13,14 @@ describe('Filesystem class', () => {
 
   describe('writeFile static method', () => {
 
-    let NodeFSDriverMock;
+    let driverMock;
 
     beforeEach(() => {
-      NodeFSDriverMock = {
-        writeDirectory: () => {
-          return Promise.resolve();
+      driverMock = {
+        writeDirectory: (dir) => {
+          return new Promise((resolve) => {
+            resolve(`${__dirname}${dir}`);
+          });
         }
       };
     });
@@ -29,13 +30,13 @@ describe('Filesystem class', () => {
       let fileSystem;
 
       beforeEach(() => {
-        NodeFSDriverMock.writeFileAsync = () => { return Promise.reject(); };
-        fileSystem = new FileSystem(NodeFSDriverMock);
+        driverMock.writeFileAsync = () => { return Promise.reject(); };
+        fileSystem = new FileSystem(driverMock);
       });
 
       it('returns a promise that will be rejected', () => {
         return expect(
-          FileSystem.writeFile('some data', '/some-file-path')
+          fileSystem.writeFile('some data', '/a-directory/', '/a.file')
         ).to.be.rejected;
       });
 
@@ -46,28 +47,27 @@ describe('Filesystem class', () => {
       let fileSystem;
 
       beforeEach(() => {
-        NodeFSDriverMock.writeFileAsync = () => { Promise.resolve(); };
-        spy(NodeFSDriverMock, 'writeFileAsync');
-        fileSystem = new FileSystem(NodeFSDriverMock);
+        driverMock.writeFileAsync = () => { return Promise.resolve(); };
+        spy(driverMock, 'writeFileAsync');
+        fileSystem = new FileSystem(driverMock);
       });
 
-      afterEach(function () {
-        NodeFSDriverMock.writeFileAsync.restore();
-      });
-
-      it('calls the file writer with the correct data to write', () => {
-        return FileSystem.writeFile('some data', '/some-file-path').then(() => {
-          const callData = NodeFSDriverMock.writeFileAsync.getCall(0);
-          expect(callData.args[1]).to.equal(data);
+      it('calls the driver\'s file writer with the correct data to write', () => {
+        const data = 'some data';
+        return fileSystem.writeFile(data, '/some-directory/', 'some.filename').then(() => {
+          const callData = driverMock.writeFileAsync.getCall(0);
+          return expect(callData.args[1]).to.equal(data);
         });
 
       });
 
-     it('calls the file writer with the correct path to write to', () => {
-        return FileSystem.writeFile('some data', '/some-file-path').then(() => {
-          const callData = NodeFSDriverMock.writeFileAsync.getCall(0);
-          const expectedPath = path.join(path.resolve(path.join(__dirname, '../')), filepath);
-          expect(callData.args[0]).to.equal(expectedPath);
+     it('calls the driver\'s file writer with the correct path to write to', () => {
+        const projectRelativeFilePath = '/some-directory/';
+        const filename = 'some.filename';
+        return fileSystem.writeFile('some data', projectRelativeFilePath, filename).then(() => {
+          const callData = driverMock.writeFileAsync.getCall(0);
+          const expectedPath = __dirname + projectRelativeFilePath + filename;
+          return expect(callData.args[0]).to.equal(expectedPath);
         });
       });
 
