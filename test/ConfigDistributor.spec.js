@@ -52,18 +52,18 @@ describe('DistributeConfig class', () => {
         paths = fixtures.paths;
         expected = standAloneConfigFixture.expectedOutput;
 
-        distributor = new ConfigDistributor(fileSystemMock, paths);
+        distributor = new ConfigDistributor(fileSystemMock, paths, reportMock);
       });
 
       it('initiates config consolidation with the config paths supplied', () => {
-        return distributor.distribute(consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock)
           .then(() => {
             expect(consolidateSpy.calledOnceWithExactly(fixtures.paths.config)).to.be.true;
           });
       });
 
       it('determines the correct data to distribute to the JavaScript layer', () => {
-        return distributor.distribute(consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock)
           .then(() => {
             expect(writeFileSpy.withArgs(expected.js).calledOnce).to.be.true;
           });
@@ -74,7 +74,7 @@ describe('DistributeConfig class', () => {
         const expectedDirectory = jsonPath.substring(0, jsonPath.lastIndexOf('/') + 1);
         const expectedFilename = jsonPath.substring(jsonPath.lastIndexOf('/') + 1);
 
-        return distributor.distribute(consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock)
 
           .then(() => { return new Promise((resolve) => {
             writeFileSpy.getCalls().forEach((spyCall) => {
@@ -88,7 +88,7 @@ describe('DistributeConfig class', () => {
       });
 
       it('determines the correct data to distribute to the Sass layer', () => {
-        return distributor.distribute(consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock)
           .then(() => {
             expect(writeFileSpy.withArgs(expected.sass).calledOnce).to.be.true;
           });
@@ -97,7 +97,7 @@ describe('DistributeConfig class', () => {
       it('attempts to distribute the Sass layer to the correct path', () => {
         const expectedDirectory = paths.output.sassVariablesPath;
         const expectedFilename = '_breakpoints.scss';
-        return distributor.distribute(consolidatorMock, reportMock)
+        return distributor.distribute(consolidatorMock)
           .then(() => {
             const spyCalls = writeFileSpy.getCalls();
             let sassCall = null;

@@ -8,23 +8,22 @@ const flatten = require('flat');
  */
 module.exports = class ConfigDistributor {
 
-  constructor(fileSystem, paths) {
+  constructor(fileSystem, paths, reporter) {
     this.fileSystem = fileSystem;
     this.paths = paths;
+    this.reporter = reporter || this.defaultReporter;
   }
 
-  distribute(
-    configGenerator,
-    reporter = ConfigDistributor.reporter) {
+  distribute(configGenerator) {
 
-    reporter.call(null, 'Distributing config...');
+    this.reporter.call(null, 'Distributing config...');
 
     return configGenerator.consolidate(this.paths.config)
       .then((config) => {
         return Promise.all(
           [
-            this.distributeToJs(config.layerAllocations.js, config.data, reporter),
-            this.distributeToSass(config.layerAllocations.sass, config.data, reporter),
+            this.distributeToJs(config.layerAllocations.js, config.data),
+            this.distributeToSass(config.layerAllocations.sass, config.data),
           ]
         )
       })
@@ -34,15 +33,15 @@ module.exports = class ConfigDistributor {
       });
   }
 
-  distributeToJs(allocations, data, reporter) {
+  distributeToJs(allocations, data) {
     const processedData = ConfigDistributor.processForJs(allocations, data);
     const relativePath = this.paths.output.jsonFileName;
     const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
     const filename = relativePath.substring(relativePath.lastIndexOf('/') + 1);
-    return this.fileSystem.writeFile(processedData, directory, filename, reporter);
+    return this.fileSystem.writeFile(processedData, directory, filename, this.reporter);
   }
 
-  distributeToSass(allocations, data, reporter) {
+  distributeToSass(allocations, data) {
     const directory = this.paths.output.sassVariablesPath;
     const fileWritePromises = [];
 
@@ -53,7 +52,7 @@ module.exports = class ConfigDistributor {
       const fileName = `_${allocation}.scss`;
       fileWritePromises.push(
         new Promise((resolve) => {
-          resolve(this.fileSystem.writeFile(processedData, directory, fileName, reporter));
+          resolve(this.fileSystem.writeFile(processedData, directory, fileName, this.reporter));
         })
       );
     });
@@ -85,7 +84,7 @@ module.exports = class ConfigDistributor {
       }, '');
   }
 
-  static reporter(message) {
+  defaultReporter(message) {
     console.log(message);
   }
 
