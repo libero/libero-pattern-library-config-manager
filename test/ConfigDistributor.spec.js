@@ -107,7 +107,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
     it('attempts to distribute the Sass layer to the correct path', () => {
       const cannedConfigToWrite = cannedData.expectedOutput.sass;
       const expectedDirectory = paths.output.sassVariablesPath;
-      // TODO: make less brittle, currently relies on fixture only distributing breakpoints to sass
+      // Relies on fixture only distributing breakpoints to sass:
       const expectedFilename = '_breakpoints.scss';
 
       filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
