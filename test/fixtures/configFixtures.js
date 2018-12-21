@@ -44,6 +44,10 @@ module.exports = {
     ],
     output:  {
       sassVariablesPath: "/generated/css/sass/variables/",
+      jsonFile: {
+        directory: "/generated/js/",
+        filename: "derivedConfig.json"
+      },
       jsonFileName: "/generated/js/derivedConfig.json"
     }
   },

@@ -3,118 +3,125 @@ const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 
 const ConfigDistributor = require('../bin/ConfigDistributor');
-const fixtures = require('./fixtures/configFixtures');
-const standAloneConfigFixture = require('./fixtures/configFixtureStandAlone');
+const {paths} = require('./fixtures/configFixtures');
+const configConsolidationCannedData = require('./fixtures/configConsolidationCannedData');
 
 const spy = sinon.spy;
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe('DistributeConfig class', () => {
+afterEach(function () {
+  sinon.restore();
+});
 
-  let directoryWriterMock;
-  let reportMock;
+describe('DistributeConfig instance\'s distribute()', () => {
+
+  let cannedData;
+  let consolidatorFixtures;
+  let distributor;
+  let fileSystem;
+  let filesystemMock;
+  let reporterFixture;
 
   beforeEach(() => {
-    directoryWriterMock = () => Promise.resolve();
-    reportMock = () => {};
+    cannedData = configConsolidationCannedData;
+    fileSystem = {
+      writeFile: () => { return Promise.resolve(); }
+    };
+    filesystemMock = sinon.mock(fileSystem);
+
+    reporterFixture = () => {};
+
+    consolidatorFixtures = {
+      forJsAndSass: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.jsAndSass);
+        }
+      },
+      forJsOnly: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.js);
+        }
+      },
+      forSassOnly: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.sass);
+        }
+      }
+    };
+
+    distributor = new ConfigDistributor(fileSystem, paths, reporterFixture);
   });
 
-  describe('an instantiated object', () => {
+  xit('initiates config consolidation with the supplied paths', () => {
+    const consolidatorMock = sinon.mock(consolidatorFixtures.forJsAndSass);
+    const expectedPaths = paths.config;
 
-    describe('distribute method', () => {
+    consolidatorMock.expects('consolidate').once().withArgs(expectedPaths);
 
-      let consolidatorMock;
-      let consolidateSpy;
-      let distributor;
-      let expected;
-      let fileSystemMock;
-      let paths;
-      let readFileSpy;
-      let writeFileSpy;
-
-      beforeEach(() => {
-          consolidatorMock = {
-            consolidate: () => {
-              return Promise.resolve(standAloneConfigFixture.input);
-            }
-          };
-          consolidateSpy = spy(consolidatorMock, 'consolidate');
-
-        fileSystemMock = {
-          writeFile: () => { return Promise.resolve; },
-          readFile: () => { return Promise.resolve; }
-        };
-        writeFileSpy = spy(fileSystemMock, 'writeFile');
-        readFileSpy = spy(fileSystemMock, 'readFile');
-
-        paths = fixtures.paths;
-        expected = standAloneConfigFixture.expectedOutput;
-
-        distributor = new ConfigDistributor(fileSystemMock, paths, reportMock);
+    return distributor.distribute(consolidatorFixtures.forJsAndSass)
+      .then(() => {
+        filesystemMock.verify();
       });
+  });
 
-      it('initiates config consolidation with the config paths supplied', () => {
-        return distributor.distribute(consolidatorMock)
-          .then(() => {
-            expect(consolidateSpy.calledOnceWithExactly(fixtures.paths.config)).to.be.true;
-          });
-      });
+  context('when deriving the data to distribute to the respective layers', () => {
 
-      it('determines the correct data to distribute to the JavaScript layer', () => {
-        return distributor.distribute(consolidatorMock)
-          .then(() => {
-            expect(writeFileSpy.withArgs(expected.js).calledOnce).to.be.true;
-          });
-      });
+    it('determines the correct data to distribute to the JavaScript layer', () => {
+      const expectedData = JSON.stringify(cannedData.expectedOutput.js);
 
-      it('attempts to distribute the JavaScript layer to the correct path', () => {
-        const jsonPath = paths.output.jsonFileName;
-        const expectedDirectory = jsonPath.substring(0, jsonPath.lastIndexOf('/') + 1);
-        const expectedFilename = jsonPath.substring(jsonPath.lastIndexOf('/') + 1);
+      filesystemMock.expects('writeFile').once().withArgs(expectedData);
 
-        return distributor.distribute(consolidatorMock)
+      return distributor.distribute(consolidatorFixtures.forJsOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
+    });
 
-          .then(() => { return new Promise((resolve) => {
-            writeFileSpy.getCalls().forEach((spyCall) => {
-              if (spyCall.args[0] === expected.js) {
-                expect(spyCall.args[1]).to.equal(expectedDirectory);
-                expect(spyCall.args[2]).to.equal(expectedFilename);
-                resolve();
-              }
-            });
-          })})
-      });
+    it('determines the correct data to distribute to the Sass layer', () => {
+      const expectedData = cannedData.expectedOutput.sass;
 
-      it('determines the correct data to distribute to the Sass layer', () => {
-        return distributor.distribute(consolidatorMock)
-          .then(() => {
-            expect(writeFileSpy.withArgs(expected.sass).calledOnce).to.be.true;
-          });
-      });
+      filesystemMock.expects('writeFile').once().withArgs(expectedData);
 
-      it('attempts to distribute the Sass layer to the correct path', () => {
-        const expectedDirectory = paths.output.sassVariablesPath;
-        const expectedFilename = '_breakpoints.scss';
-        return distributor.distribute(consolidatorMock)
-          .then(() => {
-            const spyCalls = writeFileSpy.getCalls();
-            let sassCall = null;
-            spyCalls.forEach((spyCall) => {
-              if (spyCall.args[0] === expected.sass) {
-                sassCall = spyCall;
-              }
-            });
-            expect(sassCall.args[1]).to.equal(expectedDirectory);
-            expect(sassCall.args[2]).to.equal(expectedFilename);
-          });
-
-      });
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
 
     });
 
   });
 
-});
+  context('when writing files', () => {
 
+    it('attempts to distribute the JavaScript layer to the correct path', () => {
+      const cannedConfigToWrite = JSON.stringify(cannedData.expectedOutput.js);
+      const expectedDirectory = paths.output.jsonFile.directory;
+      const expectedFilename = paths.output.jsonFile.filename;
+
+      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
+
+      return distributor.distribute(consolidatorFixtures.forJsOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
+    });
+
+    it('attempts to distribute the Sass layer to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      // TODO: make less brittle, currently relies on fixture only distributing breakpoints to sass
+      const expectedFilename = '_breakpoints.scss';
+
+      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
+
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
+    });
+
+  });
+
+});

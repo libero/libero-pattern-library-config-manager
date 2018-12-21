@@ -15,9 +15,7 @@ module.exports = class ConfigDistributor {
   }
 
   distribute(configGenerator) {
-
     this.reporter.call(null, 'Distributing config...');
-
     return configGenerator.consolidate(this.paths.config)
       .then((config) => {
         return Promise.all(
@@ -28,12 +26,15 @@ module.exports = class ConfigDistributor {
         )
       })
       .catch(err => {
-        console.error(err.message);
+        console.error(err);
         process.exit(1);
       });
   }
 
   distributeToJs(allocations, data) {
+    if (!allocations.length) {
+      return Promise.resolve();
+    }
     const processedData = ConfigDistributor.processForJs(allocations, data);
     const relativePath = this.paths.output.jsonFileName;
     const directory =  `${relativePath.substring(0, relativePath.lastIndexOf('/') + 1)}`;
