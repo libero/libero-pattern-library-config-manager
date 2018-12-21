@@ -58,7 +58,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
 
     return distributor.distribute(consolidatorFixtures.forJsAndSass)
       .then(() => {
-        return expect(consolidatorSpy.calledOnceWithExactly(expectedPaths)).to.be.true;
+        expect(consolidatorSpy.calledOnceWithExactly(expectedPaths)).to.be.true;
       });
   });
 
