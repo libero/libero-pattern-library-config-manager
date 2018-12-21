@@ -1,29 +1,28 @@
 const ConfigGenerator = require('./ConfigConsolidator');
 const ConfigDistributor = require('./ConfigDistributor');
-const fs = require('fs');
+const FileSystem = require('./FileSystem');
+const NodeFSDriver = require('./NodeFSDriver');
 const path = require('path');
-const {promisify} = require('util');
 
-const readFileAsync = promisify(fs.readFile);
+const fileSystem = new FileSystem(new NodeFSDriver());
 
-// const configSpecFilepath = path.join(/*path.resolve(__dirname, '../')*/__dirname, 'configRegister.json');
-const configSpecFilepath = path.join(__dirname, 'configRegister.json');
+const configSpecFilepath = path.join(__dirname, 'configSpec.json');
 
 function useConfigSpec(rawData) {
   const data = JSON.parse((rawData));
-  const configPaths = data.configPaths;
+  const paths = data.paths;
 
   // Combine all configs specified in configPaths into one config
-  const configGenerator = new ConfigGenerator(configPaths);
+  const configGenerator = new ConfigGenerator(paths.config);
 
   // Distribute defined parts of the config to specified technology layers
-  const configDistributor = new ConfigDistributor();
-  return configDistributor.distribute(configPaths, configGenerator)
-                   .catch((err) => { throw err; });
+  const configDistributor = new ConfigDistributor(fileSystem, paths);
+  return configDistributor.distribute(configGenerator)
+    .catch((err) => { throw err; });
 }
 
 function distribute() {
-  return readFileAsync(configSpecFilepath)
+  return fileSystem.readFile(configSpecFilepath)
     .then(useConfigSpec)
     .catch((err) => {
       throw err;

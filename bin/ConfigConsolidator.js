@@ -11,15 +11,14 @@ module.exports = class ConfigConsolidator {
 
   constructor() {}
 
-  loadConfigs(configPaths, pathPrefix) {
+  loadConfigs(configPaths, pathPrefix = '../') {
     if (!Array.isArray(configPaths)) {
       throw new Error('loadConfigs must he supplied with an array');
     }
 
     const configs = [];
-    const prefix = pathPrefix === 'undefined' ? '../' : pathPrefix;
     configPaths.forEach((configPath) => {
-      const path = `${prefix}${configPath}`;
+      const path = `${pathPrefix}${configPath}`;
 
       delete require.cache[require.resolve(path)];
       configs.push(require(path));

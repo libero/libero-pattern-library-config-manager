@@ -38,10 +38,19 @@ const secondGenericConfig = {
 
 module.exports = {
 
-  configPaths: [
-    './config--libero',
-    './config--custom'
-  ],
+  paths: {
+    config:[
+      "config--libero.js"
+    ],
+    output:  {
+      sassVariablesPath: "/generated/css/sass/variables/",
+      jsonFile: {
+        directory: "/generated/js/",
+        filename: "derivedConfig.json"
+      },
+      jsonFileName: "/generated/js/derivedConfig.json"
+    }
+  },
 
   configWithNoDeferrals: {
     stringProperty: 'string property',

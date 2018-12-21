@@ -1,198 +1,121 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
-const fs = require('fs');
-const path = require('path');
 const sinon = require('sinon');
 
-const Color = require('color');
 const ConfigDistributor = require('../bin/ConfigDistributor');
-const fixtures = require('./fixtures/configFixtures');
-const standAloneConfigFixture = require('./fixtures/configFixtureStandAlone');
-
-const spy = sinon.spy;
+const {paths} = require('./fixtures/configFixtures');
+const configConsolidationCannedData = require('./fixtures/configConsolidationCannedData');
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe('A DistributeConfig class', () => {
+afterEach(function () {
+  sinon.restore();
+});
 
-  let directoryWriterMock;
-  let reportMock;
+describe('DistributeConfig instance\'s distribute()', () => {
+
+  let cannedData;
+  let consolidatorFixtures;
+  let distributor;
+  let fileSystem;
+  let filesystemMock;
+  let reporterFixture;
 
   beforeEach(() => {
-    directoryWriterMock = () => Promise.resolve();
-    reportMock = () => {};
-  });
+    cannedData = configConsolidationCannedData;
+    fileSystem = {
+      writeFile: () => { return Promise.resolve(); }
+    };
+    filesystemMock = sinon.mock(fileSystem);
 
-  context('instantiated object', () => {
+    reporterFixture = () => {};
 
-    describe('distribute method', () => {
-
-      it('initiates config generation with the config paths supplied', () => {
-        const fileWriterMock = () => Promise.resolve();
-        const configConsolidatorMock = {
-          consolidate: () => {
-            return Promise.resolve(standAloneConfigFixture);
-          }
-        };
-        spy(configConsolidatorMock, 'consolidate');
-
-        const configPaths = fixtures.configPaths;
-        const configDistributor = new ConfigDistributor();
-        return configDistributor.distribute(configPaths, configConsolidatorMock, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          expect(configConsolidatorMock.consolidate.calledOnceWithExactly(configPaths)).to.be.true;
-        });
-      });
-
-    });
-
-  });
-
-  describe('processForSass static method', () => {
-
-    context('when supplied with a JavaScript object defining data for SASS variables', () => {
-
-      let sassConfigFixture;
-
-      beforeEach(() => {
-        sassConfigFixture = fixtures.sassConfigToProcess.input;
-      });
-
-      it('correctly converts the JavaScript into a string wrapping corresponding SASS variable declarations', () => {
-        const processed = ConfigDistributor.processForSass(sassConfigFixture);
-        expect(processed).to.deep.equal(fixtures.sassConfigToProcess.expected);
-      });
-
-    });
-
-  });
-
-  describe('processForJs static method', () => {
-
-    context('when supplied with a JavaScript object defining data for the JavaScript layer', () => {
-
-      let jsConfigFixture;
-
-      beforeEach(() => {
-        jsConfigFixture = fixtures.jsConfigToProcess.input;
-      });
-
-      it('correctly converts the JavaScript into the appropriate JSON', () => {
-        const processed = ConfigDistributor.processForJs(['breakpoints'], jsConfigFixture);
-        expect(processed).to.deep.equal(JSON.stringify(fixtures.jsConfigToProcess.input));
-      });
-
-    });
-
-  });
-
-  describe('writeDirectory static method', () => {
-
-    context('when there is an error creating the directory', () => {
-
-      it('returns a promise that will be rejected', () => {
-        const invalidDirName = (function () {
-          const parts = new Array(256);
-          parts.fill('a');
-          return parts.join('');
-        }());
-        return expect(
-          ConfigDistributor.writeDirectory(invalidDirName)
-        ).to.be.rejected;
-      });
-
-    });
-
-    context('when there no error', () => {
-
-      let validDirName;
-
-      beforeEach(() => {
-        validDirName = path.join(__dirname, '/tmp/');
-        if (fs.existsSync(validDirName)) {
-          fs.rmdirSync(validDirName);
+    consolidatorFixtures = {
+      forJsAndSass: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.jsAndSass);
         }
-        expect(fs.existsSync(validDirName)).to.be.false;
-      });
+      },
+      forJsOnly: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.js);
+        }
+      },
+      forSassOnly: {
+        consolidate: () => {
+          return Promise.resolve(cannedData.input.sass);
+        }
+      }
+    };
 
-      afterEach(() => {
-        fs.rmdirSync(validDirName);
-      });
+    distributor = new ConfigDistributor(fileSystem, paths, reporterFixture);
+  });
 
-      it('returns a promise that will not be rejected', () => {
-        return expect(
-          ConfigDistributor.writeDirectory(validDirName)
-        ).to.not.be.rejected;
-      });
+  it('initiates config consolidation with the supplied paths', () => {
+    const consolidatorSpy = sinon.spy(consolidatorFixtures.forJsAndSass, 'consolidate');
+    const expectedPaths = paths.config;
 
-      it('writes the directory', () => {
-        return ConfigDistributor.writeDirectory(validDirName).then(() => {
-          return expect(fs.existsSync(validDirName)).to.be.true;
+    return distributor.distribute(consolidatorFixtures.forJsAndSass)
+      .then(() => {
+        expect(consolidatorSpy.calledOnceWithExactly(expectedPaths)).to.be.true;
+      });
+  });
+
+  context('when deriving the data to distribute to the respective layers', () => {
+
+    it('determines the correct data to distribute to the JavaScript layer', () => {
+      const expectedData = JSON.stringify(cannedData.expectedOutput.js);
+
+      filesystemMock.expects('writeFile').once().withArgs(expectedData);
+
+      return distributor.distribute(consolidatorFixtures.forJsOnly)
+        .then(() => {
+          filesystemMock.verify();
         });
-      });
+    });
+
+    it('determines the correct data to distribute to the Sass layer', () => {
+      const expectedData = cannedData.expectedOutput.sass;
+
+      filesystemMock.expects('writeFile').once().withArgs(expectedData);
+
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
 
     });
 
   });
 
-  describe('writeFile static method', () => {
+  context('when writing files', () => {
 
-    let filepath;
-    let data;
+    it('attempts to distribute the JavaScript layer to the correct path', () => {
+      const cannedConfigToWrite = JSON.stringify(cannedData.expectedOutput.js);
+      const expectedDirectory = paths.output.jsonFile.directory;
+      const expectedFilename = paths.output.jsonFile.filename;
 
-    beforeEach(() => {
-      data = standAloneConfigFixture;
-      filepath = '/tempDir/fileFile.tmp';
+      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
+
+      return distributor.distribute(consolidatorFixtures.forJsOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
     });
 
-    context('when there is an error writing the file', () => {
+    it('attempts to distribute the Sass layer to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      // Relies on fixture only distributing breakpoints to sass:
+      const expectedFilename = '_breakpoints.scss';
 
-      let fileWriterRejectionMock;
+      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
 
-      beforeEach(() => {
-        fileWriterRejectionMock = () => {
-          return Promise.reject();
-        }
-      });
-
-      it('returns a promise that will be rejected', () => {
-        return expect(
-          ConfigDistributor.writeFile(data, filepath, fileWriterRejectionMock)
-        ).to.be.rejected;
-      });
-
-    });
-
-    context('when there is no error', () => {
-
-      let fileWriterMock;
-
-      beforeEach(() => {
-        const container = {
-          mock: () => {
-            return Promise.resolve();
-          }
-        };
-        spy(container, 'mock');
-        fileWriterMock = container.mock;
-      });
-
-      it('calls the file writer with the correct data to write', () => {
-        return ConfigDistributor.writeFile(data, filepath, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          const callData = fileWriterMock.getCall(0);
-          expect(callData.args[1]).to.equal(data);
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          filesystemMock.verify();
         });
-
-      });
-
-      it('calls the file writer with the correct path to write to', () => {
-        return ConfigDistributor.writeFile(data, filepath, fileWriterMock, directoryWriterMock, reportMock).then(() => {
-          const callData = fileWriterMock.getCall(0);
-          const expectedPath = path.join(path.resolve(path.join(__dirname, '../')), filepath);
-          expect(callData.args[0]).to.equal(expectedPath);
-        });
-      });
-
     });
 
   });
