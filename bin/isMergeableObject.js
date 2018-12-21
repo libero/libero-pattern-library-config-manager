@@ -2,7 +2,7 @@ const Color = require('color');
 
 module.exports = function isMergeableObject(value) {
 
-  // isNonNullObject and isNonNullObject copied from private deepmerge functions
+  // isNonNullObject and isSpecial copied from private deepmerge functions
 
   function isNonNullObject(value) {
     return !!value && typeof value === 'object'
