@@ -4,7 +4,7 @@ const FileSystem = require('./FileSystem');
 const NodeFSDriver = require('./NodeFSDriver');
 const path = require('path');
 
-const fileSystem = new FileSystem(NodeFSDriver);
+const fileSystem = new FileSystem(new NodeFSDriver());
 
 const configSpecFilepath = path.join(__dirname, 'configSpec.json');
 

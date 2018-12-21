@@ -7,9 +7,10 @@ const NodeFSDriver = require('../bin/NodeFSDriver')
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe('NodeFSDriver class', () => {
+describe('NodeFSDriver instance', () => {
 
   let invalidName;
+  let nodeFSDriver;
   let validName;
 
   beforeEach(() => {
@@ -20,14 +21,15 @@ describe('NodeFSDriver class', () => {
     }());
 
     validName = path.join(__dirname, '/tmp');
+    nodeFSDriver = new NodeFSDriver();
   });
 
-  describe('using the readFileAsync static method', () => {
+  describe('using the readFileAsync method', () => {
 
     context('when there is an error creating the file', () => {
 
       it('returns a promise that will be rejected', () => {
-        return expect(NodeFSDriver.readFileAsync('/i/do/not/exist.txt')).to.be.rejected;
+        return expect(nodeFSDriver.readFileAsync('/i/do/not/exist.txt')).to.be.rejected;
       });
 
     });
@@ -43,7 +45,7 @@ describe('NodeFSDriver class', () => {
       });
 
       it('correctly reads a utf8 encoded file', () => {
-        return expect(NodeFSDriver.readFileAsync(filePath, 'utf8')).to.eventually.equal(expectedContent);
+        return expect(nodeFSDriver.readFileAsync(filePath, 'utf8')).to.eventually.equal(expectedContent);
 
       });
 
@@ -51,16 +53,16 @@ describe('NodeFSDriver class', () => {
 
   });
 
-  describe('using the writeDirectory static method', () => {
+  describe('using the writeDirectory method', () => {
 
     context('when there is an error creating the directory', () => {
 
       it('returns a promise that will be rejected', () => {
-        return expect(NodeFSDriver.writeDirectory(invalidName)).to.be.rejected;
+        return expect(nodeFSDriver.writeDirectory(invalidName)).to.be.rejected;
       });
 
       it('the directory is not created', () => {
-        return NodeFSDriver.writeDirectory(invalidName).catch(() => {
+        return nodeFSDriver.writeDirectory(invalidName).catch(() => {
           return expect(fs.existsSync(invalidName)).to.be.false;
         });
       });
@@ -86,14 +88,14 @@ describe('NodeFSDriver class', () => {
       });
 
       it('writes the directory', () => {
-        return NodeFSDriver.writeDirectory(validRelativeDirName).then(() => {
+        return nodeFSDriver.writeDirectory(validRelativeDirName).then(() => {
           return expect(fs.existsSync(validRelativeDirName)).to.be.true;
         });
       });
 
       it('returns a promise that resolves to the path of the written directory', () => {
         const expectedPathWritten = path.join(process.cwd(), validRelativeDirName);
-        return NodeFSDriver.writeDirectory(validRelativeDirName).then((pathWritten) => {
+        return nodeFSDriver.writeDirectory(validRelativeDirName).then((pathWritten) => {
           return expect(pathWritten).to.equal(expectedPathWritten);
         });
       });
@@ -102,7 +104,7 @@ describe('NodeFSDriver class', () => {
 
   });
 
-  describe('using writeFileAsync static method', () => {
+  describe('using writeFileAsync method', () => {
 
     let data;
 
@@ -113,11 +115,11 @@ describe('NodeFSDriver class', () => {
     context('when there is an error creating the file', () => {
 
       it('returns a promise that will be rejected', () => {
-        return expect(NodeFSDriver.writeFileAsync(invalidName, data)).to.be.rejected;
+        return expect(nodeFSDriver.writeFileAsync(invalidName, data)).to.be.rejected;
       });
 
       it('the file is not created', () => {
-        return NodeFSDriver.writeFileAsync(invalidName, data).catch(() => {
+        return nodeFSDriver.writeFileAsync(invalidName, data).catch(() => {
           return expect(fs.existsSync(invalidName)).to.be.false;
         });
       });
@@ -137,13 +139,13 @@ describe('NodeFSDriver class', () => {
       });
 
       it('writes the file with the expected filename', () => {
-        return NodeFSDriver.writeFileAsync(validName, data).then(() => {
+        return nodeFSDriver.writeFileAsync(validName, data).then(() => {
           return expect(fs.existsSync(validName)).to.be.true;
         });
       });
 
       it('writes the expected data to the file', () => {
-        return NodeFSDriver.writeFileAsync(validName, data).then(() => {
+        return nodeFSDriver.writeFileAsync(validName, data).then(() => {
           return expect(fs.readFileSync(validName, 'utf8')).to.equal(data);
         });
       });
