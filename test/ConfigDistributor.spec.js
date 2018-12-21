@@ -6,8 +6,6 @@ const ConfigDistributor = require('../bin/ConfigDistributor');
 const {paths} = require('./fixtures/configFixtures');
 const configConsolidationCannedData = require('./fixtures/configConsolidationCannedData');
 
-const spy = sinon.spy;
-
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
@@ -54,15 +52,13 @@ describe('DistributeConfig instance\'s distribute()', () => {
     distributor = new ConfigDistributor(fileSystem, paths, reporterFixture);
   });
 
-  xit('initiates config consolidation with the supplied paths', () => {
-    const consolidatorMock = sinon.mock(consolidatorFixtures.forJsAndSass);
+  it('initiates config consolidation with the supplied paths', () => {
+    const consolidatorSpy = sinon.spy(consolidatorFixtures.forJsAndSass, 'consolidate');
     const expectedPaths = paths.config;
-
-    consolidatorMock.expects('consolidate').once().withArgs(expectedPaths);
 
     return distributor.distribute(consolidatorFixtures.forJsAndSass)
       .then(() => {
-        filesystemMock.verify();
+        return expect(consolidatorSpy.calledOnceWithExactly(expectedPaths)).to.be.true;
       });
   });
 
