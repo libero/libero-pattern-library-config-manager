@@ -78,11 +78,39 @@ module.exports = class ConfigDistributor {
       }
     }
 
-    return Object.entries(flatten(data, {delimiter: '-'}))
-      .reduce((carry, pair) => {
-        const [key, value] = pair;
-        return `${carry}$${key}: ${value};\n`;
-      }, '');
+    const stripPropertyNameRoots = (items, nameRoot) => {
+
+      const stripNameRoot = (str) => {
+        if (str.indexOf(nameRoot) > -1) {
+          return str.substring(str.indexOf('-') + 1);
+        }
+        return str;
+      };
+
+      return [
+        stripNameRoot(items[0]),
+        items[1]
+      ];
+    };
+
+    const buildProperties = (carry, pair) => {
+      let [key, value] = pair;
+      if (typeof value.indexOf === 'function' &&
+          value.indexOf(',') > -1 &&
+          value.indexOf('rgb') !== 0 &&
+          value.indexOf('!expression') === -1) {
+        value = `#{${value}}`
+      }
+      return `${carry}  ${key}: ${value},\n`;
+    };
+
+    // Assume all properties have the same property name root
+    const sassPropertyNameRoot = Object.keys(data)[0];
+    const processedProperties = Object.entries(flatten(data, {delimiter: '-'})).map((items) => {
+      return stripPropertyNameRoots(items, sassPropertyNameRoot)
+    }).reduce(buildProperties, '');
+
+    return `\$${sassPropertyNameRoot}: (\n${processedProperties});\n`;
   }
 
   defaultReporter(message) {

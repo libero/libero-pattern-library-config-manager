@@ -46,7 +46,10 @@ const expectedOutput = {
       }
     }
   },
-  sass: "$breakpoints-site-x_small: 320;\n$breakpoints-site-small: 480;\n",
+  sass: '$breakpoints: (\n'
+        + '  site-x_small: 320,\n'
+        + '  site-small: 480,\n'
+        + ');\n'
 };
 
 module.exports = {
