@@ -46,10 +46,13 @@ const expectedOutput = {
       }
     }
   },
-  sass: '$breakpoints: (\n'
-        + '  site-x_small: 320,\n'
-        + '  site-small: 480,\n'
-        + ');\n'
+  sass: {
+    sassMap: '$breakpoints: (\n'
+               + '  site-x_small: 320,\n'
+               + '  site-small: 480,\n'
+               + ');\n',
+    fileName: '_breakpoints.scss'
+  },
 };
 
 module.exports = {

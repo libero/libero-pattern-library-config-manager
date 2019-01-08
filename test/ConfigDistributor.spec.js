@@ -76,7 +76,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
     });
 
     it('determines the correct data to distribute to the Sass layer', () => {
-      const expectedData = cannedData.expectedOutput.sass;
+      const expectedData = cannedData.expectedOutput.sass.sassMap;
 
       filesystemMock.expects('writeFile').once().withArgs(expectedData);
 
@@ -105,10 +105,9 @@ describe('DistributeConfig instance\'s distribute()', () => {
     });
 
     it('attempts to distribute the Sass layer to the correct path', () => {
-      const cannedConfigToWrite = cannedData.expectedOutput.sass;
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.sassMap;
       const expectedDirectory = paths.output.sassVariablesPath;
-      // Relies on fixture only distributing breakpoints to sass:
-      const expectedFilename = '_breakpoints.scss';
+      const expectedFilename = cannedData.expectedOutput.sass.fileName;
 
       filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
 
