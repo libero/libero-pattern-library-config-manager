@@ -6,9 +6,9 @@ config.data.baselinegrid = {space: {}};
 config.data.baselinegrid.space.extra_small_in_px = 12;
 config.data.baselinegrid.space.small_in_px = '!expression baselinegrid.space.extra_small_in_px * 2';
 
-config.data.breakpoints = {site: {}};
-config.data.breakpoints.site.x_small = 320;
-config.data.breakpoints.site.small = 480;
+config.data.breakpoint = {site: {}};
+config.data.breakpoint.site.x_small = 320;
+config.data.breakpoint.site.small = 480;
 
 config.data.color = { primary: {}, text: {} };
 config.data.color.text.normal = Color('#212121');
@@ -16,7 +16,7 @@ config.data.color.text.normal = Color('#212121');
 const forJsOnly = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoints'],
+    js: ['breakpoint'],
     sass: []
   }
 };
@@ -25,33 +25,33 @@ const forSassOnly = {
   data: config.data,
   layerAllocations: {
     js: [],
-    sass: ['breakpoints']
+    sass: ['breakpoint']
   }
 };
 
 const forJsAndSass = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoints'],
-    sass: ['breakpoints']
+    js: ['breakpoint'],
+    sass: ['breakpoint']
   }
 };
 
 const expectedOutput = {
   js: {
-    breakpoints: {
+    breakpoint: {
       site: {
         x_small: 320,
-        small: 480
+        small: 480,
       }
     }
   },
   sass: {
-    sassMap: '$breakpoints: (\n'
+    sassMap: '$breakpoint: (\n'
                + '  site-x_small: 320,\n'
                + '  site-small: 480,\n'
                + ');\n',
-    fileName: '_breakpoints.scss'
+    fileName: '_breakpoint.scss'
   },
 };
 
