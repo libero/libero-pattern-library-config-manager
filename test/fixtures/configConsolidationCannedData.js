@@ -2,23 +2,16 @@ const Color = require('color');
 
 const config = { data: {} };
 
-config.data.baselinegrid = {space: {}};
-config.data.baselinegrid.space.extra_small_in_px = 12;
-config.data.baselinegrid.space.small_in_px = '!expression baselinegrid.space.extra_small_in_px * 2';
-
-config.data.breakpoint = { nested: {} };
-config.data.breakpoint.nested.number = 100;
-config.data.breakpoint.nested.quoted = 'string in quotes';
-config.data.breakpoint.nested.color_something = Color('#212121');
-config.data.breakpoint.topLevel = 200;
-
-config.data.color = { primary: {}, text: {} };
-config.data.color.text.normal = Color('#212121');
+config.data.topLevelProperty = { nested: {} };
+config.data.topLevelProperty.basic = 200;
+config.data.topLevelProperty.nested.number = 100;
+config.data.topLevelProperty.nested.quoted = 'I am a string';
+config.data.topLevelProperty.nested.color_something = Color('#212121');
 
 const forJsOnly = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoint'],
+    js: ['topLevelProperty'],
     sass: []
   }
 };
@@ -27,37 +20,37 @@ const forSassOnly = {
   data: config.data,
   layerAllocations: {
     js: [],
-    sass: ['breakpoint']
+    sass: ['topLevelProperty']
   }
 };
 
 const forJsAndSass = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoint'],
-    sass: ['breakpoint']
+    js: ['topLevelProperty'],
+    sass: ['topLevelProperty']
   }
 };
 
 const expectedOutput = {
   js: {
-    breakpoint: {
+    topLevelProperty: {
       nested: {
         number: 100,
-        quoted: "string in quotes",
+        quoted: "I am a string",
         color_something: 'rgb(33, 33, 33)'
       },
-      topLevel: 200,
+      basic: 200,
     }
   },
   sass: {
-    sassMap: '$breakpoint: (\n'
+    sassMap: '$topLevelProperty: (\n'
                + '  nested-number: 100,\n'
-               + '  nested-quoted: #{string in quotes},\n'
+               + '  nested-quoted: #{I am a string},\n'
                + '  nested-color_something: rgb(33, 33, 33),\n'
-               + '  topLevel: 200,\n'
+               + '  basic: 200,\n'
                + ');\n',
-    fileName: '_breakpoint.scss'
+    fileName: '_topLevelProperty.scss'
   },
 };
 
