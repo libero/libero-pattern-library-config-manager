@@ -62,7 +62,18 @@ module.exports = class ConfigDistributor {
 
   }
 
-  static processForJs(allocations, data) {
+  static processColors(data) {
+    const deepData = deepIterator(data);
+    for (let {parent, key, value} of deepData) {
+      if (value instanceof Color) {
+        parent[key] = value.rgb().string();
+      }
+    }
+    return data;
+  }
+
+  static processForJs(allocations, dataIn) {
+    const data = ConfigDistributor.processColors(dataIn);
     const processed = {};
     allocations.forEach((allocation) => {
       processed[allocation] = data[allocation];
@@ -70,13 +81,8 @@ module.exports = class ConfigDistributor {
     return JSON.stringify(processed);
   }
 
-  static processForSass(data) {
-    const deepData = deepIterator(data);
-    for (let {parent, key, value} of deepData) {
-      if (value instanceof Color) {
-        parent[key] = value.rgb().string();
-      }
-    }
+  static processForSass(dataIn) {
+    const data = ConfigDistributor.processColors(dataIn);
 
     const stripPropertyNameRoots = (items, nameRoot) => {
 
@@ -95,10 +101,7 @@ module.exports = class ConfigDistributor {
 
     const buildProperties = (carry, pair) => {
       let [key, value] = pair;
-      if (typeof value.indexOf === 'function' &&
-          value.indexOf(',') > -1 &&
-          value.indexOf('rgb') !== 0 &&
-          value.indexOf('!expression') === -1) {
+      if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
         value = `#{${value}}`
       }
       return `${carry}  ${key}: ${value},\n`;

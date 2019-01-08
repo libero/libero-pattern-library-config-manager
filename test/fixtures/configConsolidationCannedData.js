@@ -6,9 +6,11 @@ config.data.baselinegrid = {space: {}};
 config.data.baselinegrid.space.extra_small_in_px = 12;
 config.data.baselinegrid.space.small_in_px = '!expression baselinegrid.space.extra_small_in_px * 2';
 
-config.data.breakpoint = {site: {}};
-config.data.breakpoint.site.x_small = 320;
-config.data.breakpoint.site.small = 480;
+config.data.breakpoint = { nested: {} };
+config.data.breakpoint.nested.number = 100;
+config.data.breakpoint.nested.quoted = 'string in quotes';
+config.data.breakpoint.nested.color_something = Color('#212121');
+config.data.breakpoint.topLevel = 200;
 
 config.data.color = { primary: {}, text: {} };
 config.data.color.text.normal = Color('#212121');
@@ -40,16 +42,20 @@ const forJsAndSass = {
 const expectedOutput = {
   js: {
     breakpoint: {
-      site: {
-        x_small: 320,
-        small: 480,
-      }
+      nested: {
+        number: 100,
+        quoted: "string in quotes",
+        color_something: 'rgb(33, 33, 33)'
+      },
+      topLevel: 200,
     }
   },
   sass: {
     sassMap: '$breakpoint: (\n'
-               + '  site-x_small: 320,\n'
-               + '  site-small: 480,\n'
+               + '  nested-number: 100,\n'
+               + '  nested-quoted: #{string in quotes},\n'
+               + '  nested-color_something: rgb(33, 33, 33),\n'
+               + '  topLevel: 200,\n'
                + ');\n',
     fileName: '_breakpoint.scss'
   },
