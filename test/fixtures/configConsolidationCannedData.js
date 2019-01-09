@@ -50,16 +50,18 @@ const expectedOutput = {
                + '  nested-color_something: rgb(33, 33, 33),\n'
                + '  basic: 200,\n'
                + ');\n',
-    customProps: '@at-root {\n'
-                 + '  :root {\n'
-                 + '    --topLevelProperty-nested-number: 100;\n'
-                 + '    --topLevelProperty-nested-quoted: "Courier 10 Pitch", Courier, monospace;\n'
-                 + '    --topLevelProperty-nested-color_something: rgb(33, 33, 33);\n'
-                 + '    --topLevelProperty-basic: 200;\n'
-                 + '  }\n'
-                 + '}\n',
-    fileName: '_topLevelProperty.scss',
-    cssCustomPropsFilenme: 'custom-properties--topLevelProperty.scss'
+    customProperties: '@at-root {\n'
+                      + '  :root {\n'
+                      + '    --topLevelProperty-nested-number: 100;\n'
+                      + '    --topLevelProperty-nested-quoted: "Courier 10 Pitch", Courier, monospace;\n'
+                      + '    --topLevelProperty-nested-color_something: rgb(33, 33, 33);\n'
+                      + '    --topLevelProperty-basic: 200;\n'
+                      + '  }\n'
+                      + '}\n',
+    filename: {
+      sassMap: '_topLevelProperty.scss',
+      cssCustomProperties: 'custom-properties--topLevelProperty.scss',
+    },
   },
 };
 

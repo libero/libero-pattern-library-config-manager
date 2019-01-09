@@ -114,7 +114,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
     });
 
     it('determines the correct data to distribute to the CSS custom properties file', () => {
-      const expectedData = cannedData.expectedOutput.sass.customProps;
+      const expectedData = cannedData.expectedOutput.sass.customProperties;
       return distributor.distribute(consolidatorFixtures.forSassOnly)
         .then(() => {
           expect(writeFileSpy.withArgs(expectedData).calledOnce).to.be.true;
@@ -124,7 +124,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
     it('attempts to distribute the Sass map file to the correct path', () => {
       const cannedConfigToWrite = cannedData.expectedOutput.sass.sassMap;
       const expectedDirectory = paths.output.sassVariablesPath;
-      const expectedFilename = cannedData.expectedOutput.sass.fileName;
+      const expectedFilename = cannedData.expectedOutput.sass.filename.sassMap;
 
       return distributor.distribute(consolidatorFixtures.forSassOnly)
         .then(() => {
@@ -133,9 +133,9 @@ describe('DistributeConfig instance\'s distribute()', () => {
     });
 
     it('attempts to distribute the CSS custom properties file to the correct path', () => {
-      const cannedConfigToWrite = cannedData.expectedOutput.sass.customProps;
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.customProperties;
       const expectedDirectory = paths.output.sassVariablesPath;
-      const expectedFilename = cannedData.expectedOutput.sass.cssCustomPropsFilenme;
+      const expectedFilename = cannedData.expectedOutput.sass.filename.cssCustomProperties;
 
       return distributor.distribute(consolidatorFixtures.forSassOnly)
         .then(() => {

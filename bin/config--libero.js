@@ -56,7 +56,6 @@ config.data.font.size.caption_in_px = 13;
 config.layerAllocations = {
   sass: ['baselinegrid', 'breakpoint', 'color', 'font'],
   js: ['baselinegrid', 'breakpoint', 'color', 'font'],
-  // js: ['breakpoint'],
   // template: ['breakpoint']
 };
 
