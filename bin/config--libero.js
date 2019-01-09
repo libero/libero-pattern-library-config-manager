@@ -55,7 +55,8 @@ config.data.font.size.caption_in_px = 13;
 // Specify the top level properties to be distributed to layers (sass, js & templates)
 config.layerAllocations = {
   sass: ['baselinegrid', 'breakpoint', 'color', 'font'],
-  js: ['breakpoint'],
+  js: ['baselinegrid', 'breakpoint', 'color', 'font'],
+  // js: ['breakpoint'],
   // template: ['breakpoint']
 };
 

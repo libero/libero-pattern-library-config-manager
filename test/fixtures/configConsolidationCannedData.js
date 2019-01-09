@@ -5,7 +5,7 @@ const config = { data: {} };
 config.data.topLevelProperty = { nested: {} };
 config.data.topLevelProperty.basic = 200;
 config.data.topLevelProperty.nested.number = 100;
-config.data.topLevelProperty.nested.quoted = 'I am a string';
+config.data.topLevelProperty.nested.quoted = '"Courier 10 Pitch", Courier, monospace';
 config.data.topLevelProperty.nested.color_something = Color('#212121');
 
 const forJsOnly = {
@@ -37,7 +37,7 @@ const expectedOutput = {
     topLevelProperty: {
       nested: {
         number: 100,
-        quoted: "I am a string",
+        quoted: "\"Courier 10 Pitch\", Courier, monospace",
         color_something: 'rgb(33, 33, 33)'
       },
       basic: 200,
@@ -46,14 +46,14 @@ const expectedOutput = {
   sass: {
     sassMap: '$topLevelProperty: (\n'
                + '  nested-number: 100,\n'
-               + '  nested-quoted: #{I am a string},\n'
+               + '  nested-quoted: #{"Courier 10 Pitch", Courier, monospace},\n'
                + '  nested-color_something: rgb(33, 33, 33),\n'
                + '  basic: 200,\n'
                + ');\n',
     customProps: '@at-root {\n'
                  + '  :root {\n'
                  + '    --topLevelProperty-nested-number: 100;\n'
-                 + '    --topLevelProperty-nested-quoted: #{I am a string};\n'
+                 + '    --topLevelProperty-nested-quoted: "Courier 10 Pitch", Courier, monospace;\n'
                  + '    --topLevelProperty-nested-color_something: rgb(33, 33, 33);\n'
                  + '    --topLevelProperty-basic: 200;\n'
                  + '  }\n'

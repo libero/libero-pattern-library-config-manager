@@ -125,9 +125,6 @@ module.exports = class ConfigDistributor {
   static processForCssCustomProps(data) {
     const buildProperties = (carry, pair) => {
       let [key, value] = pair;
-      if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
-        value = `#{${value}}`
-      }
       return `${carry}    --${key}: ${value};\n`;
     };
 
