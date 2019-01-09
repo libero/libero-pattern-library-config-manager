@@ -62,7 +62,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
       });
   });
 
-  context('when deriving the data to distribute to the JavaScript layer', () => {
+  context('when processing data for the JavaScript layer', () => {
 
     it('determines the correct data to distribute to the JavaScript layer', () => {
       const expectedData = JSON.stringify(cannedData.expectedOutput.js);
@@ -75,9 +75,23 @@ describe('DistributeConfig instance\'s distribute()', () => {
         });
     });
 
+    it('attempts to distribute the JavaScript layer to the correct path', () => {
+      const cannedConfigToWrite = JSON.stringify(cannedData.expectedOutput.js);
+      const expectedDirectory = paths.output.jsonFile.directory;
+      const expectedFilename = paths.output.jsonFile.filename;
+
+      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
+
+      return distributor.distribute(consolidatorFixtures.forJsOnly)
+        .then(() => {
+          filesystemMock.verify();
+        });
+
+    });
+
   });
 
-  context('when deriving the data to distribute to the Sass layer', () => {
+  context('when processing data for the Sass layer', () => {
 
     let writeFileSpy;
 
@@ -106,59 +120,26 @@ describe('DistributeConfig instance\'s distribute()', () => {
         });
     });
 
-  });
+    it('attempts to distribute the Sass map file to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.sassMap;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      const expectedFilename = cannedData.expectedOutput.sass.fileName;
 
-  context('when writing the JavaScript file', () => {
-
-    it('attempts to distribute the JavaScript layer to the correct path', () => {
-      const cannedConfigToWrite = JSON.stringify(cannedData.expectedOutput.js);
-      const expectedDirectory = paths.output.jsonFile.directory;
-      const expectedFilename = paths.output.jsonFile.filename;
-
-      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
-
-      return distributor.distribute(consolidatorFixtures.forJsOnly)
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
         .then(() => {
-          filesystemMock.verify();
+          expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
         });
-
     });
 
-    context('when writing the Sass files', () => {
+    it('attempts to distribute the CSS custom properties file to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.customProps;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      const expectedFilename = cannedData.expectedOutput.sass.cssCustomPropsFilenme;
 
-      let writeFileSpy;
-
-      beforeEach(() => {
-        // Can't use mocks here as writeFile called more than once per test (see https://sinonjs.org/releases/v7.2.2/mocks/#expectationwithexactargsarg1-arg2-)
-        writeFileSpy = sinon.spy(fileSystem, 'writeFile');
-      });
-
-      afterEach(() => {
-        fileSystem.writeFile.restore();
-      });
-
-      it('attempts to distribute the Sass map file to the correct path', () => {
-        const cannedConfigToWrite = cannedData.expectedOutput.sass.sassMap;
-        const expectedDirectory = paths.output.sassVariablesPath;
-        const expectedFilename = cannedData.expectedOutput.sass.fileName;
-
-        return distributor.distribute(consolidatorFixtures.forSassOnly)
-          .then(() => {
-            expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
-          });
-      });
-
-      it('attempts to distribute the CSS custom properties file to the correct path', () => {
-        const cannedConfigToWrite = cannedData.expectedOutput.sass.customProps;
-        const expectedDirectory = paths.output.sassVariablesPath;
-        const expectedFilename = cannedData.expectedOutput.sass.cssCustomPropsFilenme;
-
-        return distributor.distribute(consolidatorFixtures.forSassOnly)
-          .then(() => {
-            expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
-          });
-      });
-
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
+        });
     });
 
   });

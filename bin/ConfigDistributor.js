@@ -49,19 +49,21 @@ module.exports = class ConfigDistributor {
     allocations.forEach((allocation) => {
       const dataForAllocation = {};
       dataForAllocation[allocation] = data[allocation];
+
       const sassMap = ConfigDistributor.processForSassMap(dataForAllocation);
-      const cssCustomProps = ConfigDistributor.processForCssCustomProps(dataForAllocation);
       const sassMapFileName = `_${allocation}.scss`;
-      const cssCustomPropFileName = `custom-properties--${allocation}.scss`
-      fileWritePromises.concat(
-        [
-          new Promise((resolve) => {
-            resolve(this.fileSystem.writeFile(sassMap, directory, sassMapFileName, this.reporter));
-          }),
+      fileWritePromises.push(
+        new Promise((resolve) => {
+          resolve(this.fileSystem.writeFile(sassMap, directory, sassMapFileName, this.reporter));
+        }),
+      );
+
+      const cssCustomProps = ConfigDistributor.processForCssCustomProps(dataForAllocation);
+      const cssCustomPropFileName = `custom-properties--${allocation}.scss`;
+      fileWritePromises.push(
           new Promise((resolve) => {
             resolve(this.fileSystem.writeFile(cssCustomProps, directory, cssCustomPropFileName, this.reporter));
           }),
-        ]
       );
     });
 
