@@ -50,7 +50,16 @@ const expectedOutput = {
                + '  nested-color_something: rgb(33, 33, 33),\n'
                + '  basic: 200,\n'
                + ');\n',
-    fileName: '_topLevelProperty.scss'
+    customProps: '@at-root {\n'
+                 + '  :root {\n'
+                 + '    --topLevelProperty-nested-number: 100;\n'
+                 + '    --topLevelProperty-nested-quoted: #{I am a string};\n'
+                 + '    --topLevelProperty-nested-color_something: rgb(33, 33, 33);\n'
+                 + '    --topLevelProperty-basic: 200;\n'
+                 + '  }\n'
+                 + '}\n',
+    fileName: '_topLevelProperty.scss',
+    cssCustomPropsFilenme: 'custom-properties--topLevelProperty.scss'
   },
 };
 

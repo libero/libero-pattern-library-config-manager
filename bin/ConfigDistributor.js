@@ -49,12 +49,19 @@ module.exports = class ConfigDistributor {
     allocations.forEach((allocation) => {
       const dataForAllocation = {};
       dataForAllocation[allocation] = data[allocation];
-      const processedData = ConfigDistributor.processForSass(dataForAllocation);
-      const fileName = `_${allocation}.scss`;
-      fileWritePromises.push(
-        new Promise((resolve) => {
-          resolve(this.fileSystem.writeFile(processedData, directory, fileName, this.reporter));
-        })
+      const sassMap = ConfigDistributor.processForSassMap(dataForAllocation);
+      const cssCustomProps = ConfigDistributor.processForCssCustomProps(dataForAllocation);
+      const sassMapFileName = `_${allocation}.scss`;
+      const cssCustomPropFileName = `custom-properties--${allocation}.scss`
+      fileWritePromises.concat(
+        [
+          new Promise((resolve) => {
+            resolve(this.fileSystem.writeFile(sassMap, directory, sassMapFileName, this.reporter));
+          }),
+          new Promise((resolve) => {
+            resolve(this.fileSystem.writeFile(cssCustomProps, directory, cssCustomPropFileName, this.reporter));
+          }),
+        ]
       );
     });
 
@@ -81,18 +88,15 @@ module.exports = class ConfigDistributor {
     return JSON.stringify(processed);
   }
 
-  static processForSass(dataIn) {
-    const data = ConfigDistributor.processColors(dataIn);
+  static processForSassMap(data) {
 
     const stripPropertyNameRoots = (items, nameRoot) => {
-
       const stripNameRoot = (str) => {
         if (str.indexOf(nameRoot) > -1) {
           return str.substring(str.indexOf('-') + 1);
         }
         return str;
       };
-
       return [
         stripNameRoot(items[0]),
         items[1]
@@ -107,13 +111,30 @@ module.exports = class ConfigDistributor {
       return `${carry}  ${key}: ${value},\n`;
     };
 
-    // Assume all properties have the same property name root
     const sassPropertyNameRoot = Object.keys(data)[0];
     const processedProperties = Object.entries(flatten(data, {delimiter: '-'})).map((items) => {
       return stripPropertyNameRoots(items, sassPropertyNameRoot)
     }).reduce(buildProperties, '');
 
     return `\$${sassPropertyNameRoot}: (\n${processedProperties});\n`;
+
+  }
+
+  static processForCssCustomProps(data) {
+    const buildProperties = (carry, pair) => {
+      let [key, value] = pair;
+      if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
+        value = `#{${value}}`
+      }
+      return `${carry}    --${key}: ${value};\n`;
+    };
+
+    const start = '@at-root {\n'
+                  + '  :root {\n';
+    const end = '  }\n}\n';
+    const processedProperties = Object.entries(flatten(data, {delimiter: '-'}))
+                                      .reduce(buildProperties, '');
+    return `${start}${processedProperties}${end}`;
   }
 
   defaultReporter(message) {
