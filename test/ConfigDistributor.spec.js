@@ -96,7 +96,8 @@ describe('DistributeConfig instance\'s distribute()', () => {
     let writeFileSpy;
 
     beforeEach(() => {
-      // Can't use mocks here as writeFile called more than once per test (see https://sinonjs.org/releases/v7.2.2/mocks/#expectationwithexactargsarg1-arg2-)
+      // Can't use a sinon mock here as testing a unit that calls writeFile more than once
+      // (see https://sinonjs.org/releases/v7.2.2/mocks/#expectationwithexactargsarg1-arg2-)
       writeFileSpy = sinon.spy(fileSystem, 'writeFile');
     });
 
