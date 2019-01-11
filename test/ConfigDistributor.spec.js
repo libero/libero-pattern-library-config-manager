@@ -62,7 +62,7 @@ describe('DistributeConfig instance\'s distribute()', () => {
       });
   });
 
-  context('when deriving the data to distribute to the respective layers', () => {
+  context('when processing data for the JavaScript layer', () => {
 
     it('determines the correct data to distribute to the JavaScript layer', () => {
       const expectedData = JSON.stringify(cannedData.expectedOutput.js);
@@ -75,22 +75,6 @@ describe('DistributeConfig instance\'s distribute()', () => {
         });
     });
 
-    it('determines the correct data to distribute to the Sass layer', () => {
-      const expectedData = cannedData.expectedOutput.sass;
-
-      filesystemMock.expects('writeFile').once().withArgs(expectedData);
-
-      return distributor.distribute(consolidatorFixtures.forSassOnly)
-        .then(() => {
-          filesystemMock.verify();
-        });
-
-    });
-
-  });
-
-  context('when writing files', () => {
-
     it('attempts to distribute the JavaScript layer to the correct path', () => {
       const cannedConfigToWrite = JSON.stringify(cannedData.expectedOutput.js);
       const expectedDirectory = paths.output.jsonFile.directory;
@@ -102,19 +86,60 @@ describe('DistributeConfig instance\'s distribute()', () => {
         .then(() => {
           filesystemMock.verify();
         });
+
     });
 
-    it('attempts to distribute the Sass layer to the correct path', () => {
-      const cannedConfigToWrite = cannedData.expectedOutput.sass;
-      const expectedDirectory = paths.output.sassVariablesPath;
-      // Relies on fixture only distributing breakpoints to sass:
-      const expectedFilename = '_breakpoints.scss';
+  });
 
-      filesystemMock.expects('writeFile').once().withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename);
+  context('when processing data for the Sass layer', () => {
+
+    let writeFileSpy;
+
+    beforeEach(() => {
+      // Can't use a sinon mock here as testing a unit that calls writeFile more than once
+      // (see https://sinonjs.org/releases/v7.2.2/mocks/#expectationwithexactargsarg1-arg2-)
+      writeFileSpy = sinon.spy(fileSystem, 'writeFile');
+    });
+
+    afterEach(() => {
+      fileSystem.writeFile.restore();
+    });
+
+    it('determines the correct data to distribute to the Sass map file', () => {
+      const expectedData = cannedData.expectedOutput.sass.sassMap;
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          expect(writeFileSpy.withArgs(expectedData).calledOnce).to.be.true;
+        });
+    });
+
+    it('determines the correct data to distribute to the CSS custom properties file', () => {
+      const expectedData = cannedData.expectedOutput.sass.customProperties;
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          expect(writeFileSpy.withArgs(expectedData).calledOnce).to.be.true;
+        });
+    });
+
+    it('attempts to distribute the Sass map file to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.sassMap;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      const expectedFilename = cannedData.expectedOutput.sass.filename.sassMap;
 
       return distributor.distribute(consolidatorFixtures.forSassOnly)
         .then(() => {
-          filesystemMock.verify();
+          expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
+        });
+    });
+
+    it('attempts to distribute the CSS custom properties file to the correct path', () => {
+      const cannedConfigToWrite = cannedData.expectedOutput.sass.customProperties;
+      const expectedDirectory = paths.output.sassVariablesPath;
+      const expectedFilename = cannedData.expectedOutput.sass.filename.cssCustomProperties;
+
+      return distributor.distribute(consolidatorFixtures.forSassOnly)
+        .then(() => {
+          expect(writeFileSpy.withArgs(cannedConfigToWrite, expectedDirectory, expectedFilename).calledOnce).to.be.true;
         });
     });
 

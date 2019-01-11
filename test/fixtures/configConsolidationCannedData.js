@@ -2,21 +2,16 @@ const Color = require('color');
 
 const config = { data: {} };
 
-config.data.baselinegrid = {space: {}};
-config.data.baselinegrid.space.extra_small_in_px = 12;
-config.data.baselinegrid.space.small_in_px = '!expression baselinegrid.space.extra_small_in_px * 2';
-
-config.data.breakpoints = {site: {}};
-config.data.breakpoints.site.x_small = 320;
-config.data.breakpoints.site.small = 480;
-
-config.data.color = { primary: {}, text: {} };
-config.data.color.text.normal = Color('#212121');
+config.data.topLevelProperty = { nested: {} };
+config.data.topLevelProperty.basic = 200;
+config.data.topLevelProperty.nested.number = 100;
+config.data.topLevelProperty.nested.quoted = '"Courier 10 Pitch", Courier, monospace';
+config.data.topLevelProperty.nested.color_something = Color('#212121');
 
 const forJsOnly = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoints'],
+    js: ['topLevelProperty'],
     sass: []
   }
 };
@@ -25,28 +20,49 @@ const forSassOnly = {
   data: config.data,
   layerAllocations: {
     js: [],
-    sass: ['breakpoints']
+    sass: ['topLevelProperty']
   }
 };
 
 const forJsAndSass = {
   data: config.data,
   layerAllocations: {
-    js: ['breakpoints'],
-    sass: ['breakpoints']
+    js: ['topLevelProperty'],
+    sass: ['topLevelProperty']
   }
 };
 
 const expectedOutput = {
   js: {
-    breakpoints: {
-      site: {
-        x_small: 320,
-        small: 480
-      }
+    topLevelProperty: {
+      nested: {
+        number: 100,
+        quoted: "\"Courier 10 Pitch\", Courier, monospace",
+        color_something: 'rgb(33, 33, 33)'
+      },
+      basic: 200,
     }
   },
-  sass: "$breakpoints-site-x_small: 320;\n$breakpoints-site-small: 480;\n",
+  sass: {
+    sassMap: '$topLevelProperty: (\n'
+               + '  nested-number: 100,\n'
+               + '  nested-quoted: #{"Courier 10 Pitch", Courier, monospace},\n'
+               + '  nested-color_something: rgb(33, 33, 33),\n'
+               + '  basic: 200,\n'
+               + ');\n',
+    customProperties: '@at-root {\n'
+                      + '  :root {\n'
+                      + '    --topLevelProperty-nested-number: 100;\n'
+                      + '    --topLevelProperty-nested-quoted: "Courier 10 Pitch", Courier, monospace;\n'
+                      + '    --topLevelProperty-nested-color_something: rgb(33, 33, 33);\n'
+                      + '    --topLevelProperty-basic: 200;\n'
+                      + '  }\n'
+                      + '}\n',
+    filename: {
+      sassMap: '_topLevelProperty.scss',
+      cssCustomProperties: 'custom-properties--topLevelProperty.scss',
+    },
+  },
 };
 
 module.exports = {

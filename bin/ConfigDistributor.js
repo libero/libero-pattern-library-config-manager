@@ -49,12 +49,21 @@ module.exports = class ConfigDistributor {
     allocations.forEach((allocation) => {
       const dataForAllocation = {};
       dataForAllocation[allocation] = data[allocation];
-      const processedData = ConfigDistributor.processForSass(dataForAllocation);
-      const fileName = `_${allocation}.scss`;
+
+      const sassMap = ConfigDistributor.processForSassMap(dataForAllocation);
+      const sassMapFileName = `_${allocation}.scss`;
       fileWritePromises.push(
         new Promise((resolve) => {
-          resolve(this.fileSystem.writeFile(processedData, directory, fileName, this.reporter));
-        })
+          resolve(this.fileSystem.writeFile(sassMap, directory, sassMapFileName, this.reporter));
+        }),
+      );
+
+      const cssCustomProps = ConfigDistributor.processForCssCustomProps(dataForAllocation);
+      const cssCustomPropFileName = `custom-properties--${allocation}.scss`;
+      fileWritePromises.push(
+          new Promise((resolve) => {
+            resolve(this.fileSystem.writeFile(cssCustomProps, directory, cssCustomPropFileName, this.reporter));
+          }),
       );
     });
 
@@ -62,7 +71,18 @@ module.exports = class ConfigDistributor {
 
   }
 
-  static processForJs(allocations, data) {
+  static processColors(data) {
+    const deepData = deepIterator(data);
+    for (let {parent, key, value} of deepData) {
+      if (value instanceof Color) {
+        parent[key] = value.rgb().string();
+      }
+    }
+    return data;
+  }
+
+  static processForJs(allocations, dataIn) {
+    const data = ConfigDistributor.processColors(dataIn);
     const processed = {};
     allocations.forEach((allocation) => {
       processed[allocation] = data[allocation];
@@ -70,19 +90,50 @@ module.exports = class ConfigDistributor {
     return JSON.stringify(processed);
   }
 
-  static processForSass(data) {
-    const deepData = deepIterator(data);
-    for (let {parent, key, value} of deepData) {
-      if (value instanceof Color) {
-        parent[key] = value.rgb().string();
-      }
-    }
+  static processForSassMap(data) {
 
-    return Object.entries(flatten(data, {delimiter: '-'}))
-      .reduce((carry, pair) => {
-        const [key, value] = pair;
-        return `${carry}$${key}: ${value};\n`;
-      }, '');
+    const stripPropertyNameRoots = (items, nameRoot) => {
+      const stripNameRoot = (str) => {
+        if (str.indexOf(nameRoot) > -1) {
+          return str.substring(str.indexOf('-') + 1);
+        }
+        return str;
+      };
+      return [
+        stripNameRoot(items[0]),
+        items[1]
+      ];
+    };
+
+    const buildProperties = (carry, pair) => {
+      let [key, value] = pair;
+      if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
+        value = `#{${value}}`
+      }
+      return `${carry}  ${key}: ${value},\n`;
+    };
+
+    const sassPropertyNameRoot = Object.keys(data)[0];
+    const processedProperties = Object.entries(flatten(data, {delimiter: '-'})).map((items) => {
+      return stripPropertyNameRoots(items, sassPropertyNameRoot)
+    }).reduce(buildProperties, '');
+
+    return `\$${sassPropertyNameRoot}: (\n${processedProperties});\n`;
+
+  }
+
+  static processForCssCustomProps(data) {
+    const buildProperties = (carry, pair) => {
+      let [key, value] = pair;
+      return `${carry}    --${key}: ${value};\n`;
+    };
+
+    const start = '@at-root {\n'
+                  + '  :root {\n';
+    const end = '  }\n}\n';
+    const processedProperties = Object.entries(flatten(data, {delimiter: '-'}))
+                                      .reduce(buildProperties, '');
+    return `${start}${processedProperties}${end}`;
   }
 
   defaultReporter(message) {
