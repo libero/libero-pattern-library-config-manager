@@ -1,6 +1,6 @@
 {
   "name": "libero-pattern-library-config-manager",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Configuration manager for Libero patterns",
   "main": "index.js",
   "directories": {
@@ -9,7 +9,7 @@
   "scripts": {
     "test": "mocha"
   },
-  "author": "d.moulton@elifesciences.org",
+  "author": "libero-npm@elifesciences.org",
   "license": "MIT",
   "dependencies": {
     "chai": "^4.2.0",
