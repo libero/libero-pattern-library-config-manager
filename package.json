@@ -2,7 +2,7 @@
   "name": "libero-pattern-library-config-manager",
   "version": "0.0.1",
   "description": "Configuration manager for Libero patterns",
-  "main": "index.js",
+  "main": "distributeConfig.js",
   "directories": {
     "test": "test"
   },
