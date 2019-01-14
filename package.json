@@ -1,5 +1,5 @@
 {
-  "name": "pattern-library-config-manager",
+  "name": "@libero/pattern-library-config-manager",
   "version": "0.0.2",
   "description": "Configuration manager for Libero patterns",
   "main": "distributeConfig.js",
