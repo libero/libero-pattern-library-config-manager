@@ -110,6 +110,12 @@ module.exports = class ConfigDistributor {
       if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
         value = `#{${value}}`
       }
+
+      if (key.endsWith('_in_px')) {
+        key = key.substring(0, key.length - 6);
+        value = `${value}px`;
+      }
+
       return `${carry}  ${key}: ${value},\n`;
     };
 
@@ -125,6 +131,12 @@ module.exports = class ConfigDistributor {
   static processForCssCustomProps(data) {
     const buildProperties = (carry, pair) => {
       let [key, value] = pair;
+
+      if (key.endsWith('_in_px')) {
+        key = key.substring(0, key.length - 6);
+        value = `${value}px`;
+      }
+
       return `${carry}    --${key}: ${value};\n`;
     };
 
