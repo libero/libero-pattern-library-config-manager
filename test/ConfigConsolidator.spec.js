@@ -7,7 +7,7 @@ chai.use(chaiAsPromised);
 const Color = require('color');
 
 const fixtures = require('./fixtures/configFixtures');
-const ConfigConsolidator = require('../bin/ConfigConsolidator');
+const ConfigConsolidator = require('../ConfigConsolidator');
 
 describe('A ConfigConsolidator class', () => {
 
