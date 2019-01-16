@@ -2,7 +2,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const sinon = require('sinon');
 
-const ConfigDistributor = require('../bin/ConfigDistributor');
+const ConfigDistributor = require('../ConfigDistributor');
 const {paths} = require('./fixtures/configFixtures');
 const configConsolidationCannedData = require('./fixtures/configConsolidationCannedData');
 

@@ -7,7 +7,7 @@ chai.use(chaiAsPromised);
 const Color = require('color');
 
 const fixtures = require('./fixtures/configFixtures');
-const ConfigConsolidator = require('../bin/ConfigConsolidator');
+const ConfigConsolidator = require('../ConfigConsolidator');
 
 describe('A ConfigConsolidator class', () => {
 
@@ -37,7 +37,7 @@ describe('A ConfigConsolidator class', () => {
           expect(() => {
             configConsolidator.loadConfigs([]);
           }).not.to.throw('loadConfigs must he supplied with an array');
-        })
+        });
 
         context('when a value in the supplied array does not resolve to a file system path', () => {
 

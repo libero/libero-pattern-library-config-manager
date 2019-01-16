@@ -19,7 +19,6 @@ config.data.breakpoint.site.x_wide = 1200;
 
 config.data.color = { primary: {}, text: {} };
 config.data.color.primary.normal = Color('#0288D1');
-config.data.color.primary.light = config.data.color.primary.normal.lighten(0.1);
 config.data.color.primary.dark = Color('#0277bd');
 config.data.color.text.normal = Color('#212121');
 config.data.color.text.reverse = Color('#fff');
