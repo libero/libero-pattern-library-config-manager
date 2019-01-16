@@ -1,4 +1,8 @@
-This is intended for use with the [Libero pattern library](https://github.com/libero/pattern-library). If you're not using that, then this is probably not the package you're looking for. 
+# Pattern Library Config Manager
+
+This is intended for use with the [Libero pattern library](https://github.com/libero/pattern-library). If you're not using that, then this is probably not the package you're looking for.
+
+**N.B. At the moment this package is not yet stable and could receive a breaking change at any time.**   
  
 ### Configuration
 
