@@ -22,6 +22,14 @@ function useConfigSpec(rawData) {
 }
 
 function distribute() {
+
+  /*
+   * TODO: try out catering for the following command line configuration:
+   *  --configPath=[file-path] --mode=merge|replace --outputPaths={sass:file-path, js:file-path, template:file-path}
+   *    N.B. merge will need a default
+   *
+   */
+
   return fileSystem.readFile(configSpecFilepath)
     .then(useConfigSpec)
     .catch((err) => {

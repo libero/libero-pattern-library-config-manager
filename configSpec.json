@@ -4,8 +4,8 @@
       "config--libero.js"
     ],
     "output":  {
-      "sassVariablesPath": "/generated/css/sass/variables/",
-      "jsonFileName": "/generated/js/derivedConfig.json"
+      "sassVariablesPath": "/source/css/sass/variables/",
+      "jsonFileName": "/source/js/derivedConfig.json"
     }
   }
 }
