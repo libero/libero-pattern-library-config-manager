@@ -46,7 +46,7 @@ const expectedOutput = {
   sass: {
     sassMap: '$topLevelProperty: (\n'
                + '  nested-number: 100,\n'
-               + '  nested-quoted: #{"Courier 10 Pitch", Courier, monospace},\n'
+               + '  nested-quoted: \'"Courier 10 Pitch", Courier, monospace\',\n'
                + '  nested-color_something: rgb(33, 33, 33),\n'
                + '  basic: 200,\n'
                + ');\n',

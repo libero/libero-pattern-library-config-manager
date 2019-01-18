@@ -108,7 +108,8 @@ module.exports = class ConfigDistributor {
     const buildProperties = (carry, pair) => {
       let [key, value] = pair;
       if (typeof value === 'string' && value.indexOf('rgb') !== 0) {
-        value = `#{${value}}`
+        value = value.replace('\'', '"');
+        value = `'${value}'`
       }
 
       if (key.endsWith('_in_px')) {
