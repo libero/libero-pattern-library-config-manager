@@ -1,6 +1,6 @@
 {
   "name": "@libero/pattern-library-config-manager",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Configuration manager for Libero patterns",
   "repository": {
     "type": "git",
