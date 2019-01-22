@@ -53,10 +53,10 @@ config.data.content_header.title.size.x_large_in_px = 41;
 config.data.content_header.title.size.xx_large_in_px = 46;
 config.data.content_header.title.size.xxx_large_in_px = 52;
 
-config.data.font = { size: {}, letterspacing: {} };
-config.data.font.primary = '"Noto Serif", serif';
-config.data.font.secondary = '"Noto Sans", Arial, Helvetica, sans-serif';
-config.data.font.monospace = '"Courier 10 Pitch", Courier, monospace';
+config.data.font = { size: {}, letterspacing: {}, family: {} };
+config.data.font.family.primary = '"Noto Serif", serif';
+config.data.font.family.secondary = '"Noto Sans", Arial, Helvetica, sans-serif';
+config.data.font.family.monospace = '"Courier 10 Pitch", Courier, monospace';
 config.data.font.size.base_in_px = 16;
 config.data.font.size.h1_in_px = 36;
 config.data.font.size.h2_in_px = 26;
