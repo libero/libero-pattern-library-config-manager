@@ -10,12 +10,12 @@ config.data.baselinegrid.space.medium_in_px = '!expression baselinegrid.space.sm
 config.data.baselinegrid.space.large_in_px = '!expression baselinegrid.space.small_in_px * 3';
 config.data.baselinegrid.space.extra_large_in_px = '!expression baselinegrid.space.small_in_px * 5';
 
-config.data.breakpoint = {site: {}};
-config.data.breakpoint.site.x_small_in_px = 320;
-config.data.breakpoint.site.small_in_px = 480;
-config.data.breakpoint.site.medium_in_px = 730;
-config.data.breakpoint.site.wide_in_px = 900;
-config.data.breakpoint.site.x_wide_in_px = 1200;
+config.data.breakpoint = {};
+config.data.breakpoint.x_small_in_px = 320;
+config.data.breakpoint.small_in_px = 480;
+config.data.breakpoint.medium_in_px = 730;
+config.data.breakpoint.wide_in_px = 900;
+config.data.breakpoint.x_wide_in_px = 1200;
 
 config.data.grid = {};
 config.data.grid.max_width_in_px = 1114;

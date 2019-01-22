@@ -97,35 +97,31 @@ module.exports = {
   sassConfigToProcess: {
     input: {
       breakpoints: {
-        site: {
-          'x_small': 320,
-          small: 480,
-          medium: 730,
-          wide: 900,
-          'x_wide': 1400,
-          'xx_wide': 1600
-        }
+        'x_small': 320,
+        small: 480,
+        medium: 730,
+        wide: 900,
+        'x_wide': 1400,
+        'xx_wide': 1600
       }
     },
-    expected: '$breakpoints-site-x_small: 320;\n'
-            + '$breakpoints-site-small: 480;\n'
-            + '$breakpoints-site-medium: 730;\n'
-            + '$breakpoints-site-wide: 900;\n'
-            + '$breakpoints-site-x_wide: 1400;\n'
-            + '$breakpoints-site-xx_wide: 1600;\n'
+    expected: '$breakpoints-x_small: 320;\n'
+            + '$breakpoints-small: 480;\n'
+            + '$breakpoints-medium: 730;\n'
+            + '$breakpoints-wide: 900;\n'
+            + '$breakpoints-x_wide: 1400;\n'
+            + '$breakpoints-xx_wide: 1600;\n'
   },
 
   jsConfigToProcess: {
     input: {
       breakpoints: {
-        site: {
-          'x_small': 320,
-          small: 480,
-          medium: 730,
-          wide: 900,
-          'x_wide': 1400,
-          'xx_wide': 1600
-        }
+        'x_small': 320,
+        small: 480,
+        medium: 730,
+        wide: 900,
+        'x_wide': 1400,
+        'xx_wide': 1600
       }
     }
 
