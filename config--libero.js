@@ -10,12 +10,12 @@ config.data.baselinegrid.space.medium_in_px = '!expression baselinegrid.space.sm
 config.data.baselinegrid.space.large_in_px = '!expression baselinegrid.space.small_in_px * 3';
 config.data.baselinegrid.space.extra_large_in_px = '!expression baselinegrid.space.small_in_px * 5';
 
-config.data.breakpoint = {site: {}};
-config.data.breakpoint.site.x_small_in_px = 320;
-config.data.breakpoint.site.small_in_px = 480;
-config.data.breakpoint.site.medium_in_px = 730;
-config.data.breakpoint.site.wide_in_px = 900;
-config.data.breakpoint.site.x_wide_in_px = 1200;
+config.data.breakpoint = {};
+config.data.breakpoint.x_small_in_px = 320;
+config.data.breakpoint.small_in_px = 480;
+config.data.breakpoint.medium_in_px = 730;
+config.data.breakpoint.wide_in_px = 900;
+config.data.breakpoint.x_wide_in_px = 1200;
 
 config.data.grid = {};
 config.data.grid.max_width_in_px = 1114;
@@ -53,10 +53,10 @@ config.data.content_header.title.size.x_large_in_px = 41;
 config.data.content_header.title.size.xx_large_in_px = 46;
 config.data.content_header.title.size.xxx_large_in_px = 52;
 
-config.data.font = { size: {}, letterspacing: {} };
-config.data.font.primary = '"Noto Serif", serif';
-config.data.font.secondary = '"Noto Sans", Arial, Helvetica, sans-serif';
-config.data.font.monospace = '"Courier 10 Pitch", Courier, monospace';
+config.data.font = { size: {}, letterspacing: {}, family: {} };
+config.data.font.family.primary = '"Noto Serif", serif';
+config.data.font.family.secondary = '"Noto Sans", Arial, Helvetica, sans-serif';
+config.data.font.family.monospace = '"Courier 10 Pitch", Courier, monospace';
 config.data.font.size.base_in_px = 16;
 config.data.font.size.h1_in_px = 36;
 config.data.font.size.h2_in_px = 26;
