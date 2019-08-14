@@ -1,3 +1,5 @@
+**UPDATE: Overcomplicated for the current use case. Archived on 14 August 2019.**
+
 # Pattern Library Config Manager
 
 This is intended for use with the [Libero pattern library](https://github.com/libero/pattern-library). If you're not using that, then this is probably not the package you're looking for.
